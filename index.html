@@ -1,184 +1,2858 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ Sơ Cá Nhân - CV</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>Royal Monte Carlo - No-Limit Texas Hold'em (Multiplayer & AI)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --felt-green: #0f4d2a;
+            --felt-dark: #072915;
+            --rail-leather: #231712;
+            --gold-accent: #e5c158;
+            --gold-dark: #b38728;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #1a1f2c 0%, #090b10 100%);
+            color: #f8fafc;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .font-casino {
+            font-family: 'Cinzel', serif;
+        }
+
+        .font-mono-num {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Casino Table Styling */
+        .poker-table-outer {
+            background: linear-gradient(145deg, #3a2218, #1a0f0a);
+            box-shadow: 
+                0 25px 60px rgba(0,0,0,0.9),
+                inset 0 2px 5px rgba(255,255,255,0.15),
+                inset 0 -5px 15px rgba(0,0,0,0.8),
+                0 0 0 8px #140b07,
+                0 0 0 11px var(--gold-dark);
+            border-radius: 260px;
+        }
+
+        .poker-table-felt {
+            background: radial-gradient(ellipse at center, #16693a 0%, #0b4122 65%, #062613 100%);
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.85);
+            border-radius: 230px;
+            border: 3px solid rgba(229, 193, 88, 0.35);
+            position: relative;
+        }
+
+        .poker-table-felt::before {
+            content: '';
+            position: absolute;
+            inset: 18px;
+            border: 1px dashed rgba(229, 193, 88, 0.22);
+            border-radius: 215px;
+            pointer-events: none;
+        }
+
+        /* Playing Cards */
+        .playing-card {
+            width: 56px;
+            height: 80px;
+            border-radius: 7px;
+            background: #ffffff;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(0,0,0,0.12);
+            position: relative;
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4px 5px;
+            color: #111827;
+        }
+
+        @media (min-width: 1024px) {
+            .playing-card {
+                width: 64px;
+                height: 92px;
+                padding: 5px 6px;
+            }
+            .playing-card.community-card {
+                width: 72px;
+                height: 102px;
+            }
+        }
+
+        .playing-card.card-red {
+            color: #dc2626;
+        }
+
+        .playing-card.card-black {
+            color: #0f172a;
+        }
+
+        .playing-card.card-back {
+            background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
+            border: 3px solid #f8fafc;
+        }
+
+        .playing-card.card-back::after {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border: 1px solid rgba(229, 193, 88, 0.5);
+            border-radius: 3px;
+            background-image: radial-gradient(#e5c158 1px, transparent 1px);
+            background-size: 8px 8px;
+            opacity: 0.45;
+        }
+
+        .playing-card.winning-card {
+            transform: translateY(-10px) scale(1.06);
+            box-shadow: 0 0 22px #facc15, 0 10px 20px rgba(0,0,0,0.7);
+            outline: 2px solid #facc15;
+            z-index: 30;
+        }
+
+        .playing-card.dimmed-card {
+            opacity: 0.45;
+            filter: grayscale(35%);
+        }
+
+        /* Animations */
+        @keyframes dealCard {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.5) rotate(-12deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        .animate-deal {
+            animation: dealCard 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes pulseRing {
+            0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(250, 204, 21, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+        }
+
+        .active-turn-glow {
+            animation: pulseRing 1.5s infinite;
+            border-color: #facc15 !important;
+        }
+
+        /* Seat Positions around the Oval Table */
+        .seat-pos-0 { bottom: -34px; left: 50%; transform: translateX(-50%); } /* Bottom Center */
+        .seat-pos-1 { bottom: 13%; left: -28px; } /* Bottom Left */
+        .seat-pos-2 { top: 13%; left: -28px; } /* Top Left */
+        .seat-pos-3 { top: -38px; left: 50%; transform: translateX(-50%); } /* Top Center */
+        .seat-pos-4 { top: 13%; right: -28px; } /* Top Right */
+        .seat-pos-5 { bottom: 13%; right: -28px; } /* Bottom Right */
+
+        /* Bet Chip Positions relative to Table Center */
+        .bet-pos-0 { bottom: 19%; left: 50%; transform: translateX(-50%); }
+        .bet-pos-1 { bottom: 26%; left: 16%; }
+        .bet-pos-2 { top: 26%; left: 16%; }
+        .bet-pos-3 { top: 19%; left: 50%; transform: translateX(-50%); }
+        .bet-pos-4 { top: 26%; right: 16%; }
+        .bet-pos-5 { bottom: 26%; right: 16%; }
+
+        /* Dealer Button Positions */
+        .dealer-pos-0 { bottom: 17%; left: 59%; }
+        .dealer-pos-1 { bottom: 38%; left: 9%; }
+        .dealer-pos-2 { top: 38%; left: 9%; }
+        .dealer-pos-3 { top: 17%; left: 40%; }
+        .dealer-pos-4 { top: 38%; right: 9%; }
+        .dealer-pos-5 { bottom: 38%; right: 9%; }
+
+        /* Poker Chip Styling */
+        .poker-chip {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px dashed #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 800;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+        }
+
+        /* Custom Range Slider */
+        input[type=range].raise-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255,255,255,0.15);
+            height: 8px;
+            border-radius: 4px;
+        }
+        input[type=range].raise-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fde047, #ca8a04);
+            border: 2px solid #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(229, 193, 88, 0.4);
+            border-radius: 4px;
+        }
+    </style>
 </head>
-<body>
-    <div class="cv-container">
-        <!-- Header -->
-        <header class="cv-header">
-            <div class="profile-info">
-                <h1 class="name">Nguyễn Văn A</h1>
-                <p class="title">Kỹ sư Phần mềm / Full-stack Developer</p>
-                <div class="contact-info">
-                    <span>📍 Hồ Chí Minh, Việt Nam</span>
-                    <span>📞 0901 234 567</span>
-                    <span>✉️ nguyenvana@email.com</span>
-                    <span>🔗 linkedin.com/in/nguyenvana</span>
-                    <span>💻 github.com/nguyenvana</span>
+<body class="h-screen w-screen flex flex-col justify-between select-none overflow-hidden">
+
+    <!-- TOP NAVIGATION & STATUS BAR -->
+    <header class="w-full h-14 bg-slate-950/90 border-b border-amber-500/20 px-3 lg:px-6 flex items-center justify-between z-40 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-spade text-slate-950 text-lg"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-casino text-amber-400 text-sm md:text-base tracking-wider font-extrabold leading-none">ROYAL MONTE CARLO</h1>
+                    <span id="ui-mode-pill" class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Solo vs Bots</span>
                 </div>
+                <p id="ui-sub-header" class="text-[11px] text-slate-400 font-medium truncate max-w-[210px] sm:max-w-none">No-Limit Hold'em • 6-Max Ring Game</p>
             </div>
-            <div class="profile-photo">
-                <div class="photo-placeholder">Ảnh</div>
-            </div>
-        </header>
-
-        <div class="cv-body">
-            <!-- Left Column -->
-            <aside class="cv-sidebar">
-                <section class="sidebar-section">
-                    <h2 class="section-title">Tóm tắt</h2>
-                    <p class="summary">
-                        Kỹ sư phần mềm với 3+ năm kinh nghiệm phát triển ứng dụng web.
-                        Chuyên ngành làm việc với React, Node.js và các công nghệ hiện đại.
-                        Đam mê xây dựng các sản phẩm chất lượng, hiệu năng cao.
-                    </p>
-                </section>
-
-                <section class="sidebar-section">
-                    <h2 class="section-title">Kỹ năng</h2>
-                    <div class="skills-list">
-                        <div class="skill-item">
-                            <span class="skill-name">HTML5 / CSS3</span>
-                            <div class="skill-bar"><div class="skill-level" style="width: 95%"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <span class="skill-name">JavaScript (ES6+)</span>
-                            <div class="skill-bar"><div class="skill-level" style="width: 90%"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <span class="skill-name">React.js</span>
-                            <div class="skill-bar"><div class="skill-level" style="width: 85%"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <span class="skill-name">Node.js</span>
-                            <div class="skill-bar"><div class="skill-level" style="width: 80%"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <span class="skill-name">Python</span>
-                            <div class="skill-bar"><div class="skill-level" style="width: 75%"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <span class="skill-name">MongoDB / PostgreSQL</span>
-                            <div class="skill-bar"><div class="skill-level" style="width: 70%"></div></div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="sidebar-section">
-                    <h2 class="section-title">Ngôn ngữ</h2>
-                    <div class="language-list">
-                        <div class="language-item">
-                            <span>Tiếng Việt</span>
-                            <span class="level">Ngôn ngữ bản thân</span>
-                        </div>
-                        <div class="language-item">
-                            <span>Tiếng Anh</span>
-                            <span class="level">Trung cấp</span>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="sidebar-section">
-                    <h2 class="section-title">Sở thích</h2>
-                    <div class="hobbies-list">
-                        <span>🚴‍♂️ Đạp xe</span>
-                        <span>📚 Đọc sách</span>
-                        <span>🎮 Trò chơi</span>
-                        <span>🎵 Nghe nhạc</span>
-                    </div>
-                </section>
-            </aside>
-
-            <!-- Right Column -->
-            <main class="cv-main">
-                <section class="main-section">
-                    <div class="experience-item">
-                        <div class="exp-header">
-                            <h3 class="job-title">Senior Full-stack Developer</h3>
-                            <span class="exp-date">01/2022 - Hiện tại</span>
-                        </div>
-                        <p class="company">Công ty ABC Tech JSC</p>
-                        <ul class="job-description">
-                            <li>Phát triển và bảo trì các ứng dụng web sử dụng React, Node.js</li>
-                            <li>Thiết kế API RESTful và tích hợp với hệ thống bên thứ ba</li>
-                            <li>Hướng dẫn nhóm phát triển 5 thành viên, thực hiện code review</li>
-                            <li>Tối ưu hóa hiệu năng ứng dụng, giảm thời gian tải trang 40%</li>
-                        </ul>
-                    </div>
-
-                    <div class="experience-item">
-                        <div class="exp-header">
-                            <h3 class="job-title">Front-end Developer</h3>
-                            <span class="exp-date">06/2020 - 12/2021</span>
-                        </div>
-                        <p class="company">Công ty XYZ Solutions</p>
-                        <ul class="job-description">
-                            <li>Xây dựng giao diện người dùng với React, Redux</li>
-                            <li>Tham gia phân tích yêu cầu và thiết kế hệ thống</li>
-                            <li>Tối ưu hóa SEO và hiệu năng front-end</li>
-                            <li>Làm việc với nhóm thiết kế để triển khai UI/UX</li>
-                        </ul>
-                    </div>
-
-                    <div class="experience-item">
-                        <div class="exp-header">
-                            <h3 class="job-title">Intern Developer</h3>
-                            <span class="exp-date">01/2020 - 05/2020</span>
-                        </div>
-                        <p class="company">Công ty DEF Software</p>
-                        <ul class="job-description">
-                            <li>Hỗ trợ phát triển các tính năng nhỏ trên ứng dụng web</li>
-                            <li>Viết unit test và tích hợp liên tục</li>
-                            <li>Học tập các công nghệ mới và áp dụng vào công việc</li>
-                        </ul>
-                    </div>
-                </section>
-
-                <section class="main-section">
-                    <h2 class="section-title main-section-title">Đối án Dự án</h2>
-
-                    <div class="project-item">
-                        <h3 class="project-title">Hệ thống Quản lý Nhà hàng</h3>
-                        <span class="project-tech">React, Node.js, MongoDB</span>
-                        <p class="project-desc">Xây dựng hệ thống quản lý đơn hàng, bàn ăn và thanh toán cho nhà hàng.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <h3 class="project-title">Ứng dụng Theo dõi Sức khỏe</h3>
-                        <span class="project-tech">React Native, Firebase</span>
-                        <p class="project-desc">Ứng dụng di động giúp người dùng theo dõi chế độ ăn uống và tập luyện.</p>
-                    </div>
-                </section>
-
-                <section class="main-section">
-                    <h2 class="section-title main-section-title">Học vấn</h2>
-
-                    <div class="education-item">
-                        <h3 class="edu-degree">Công nghệ Thông tin</h3>
-                        <p class="edu-school">ĐH Khoa học Tự nhiên TP. Hồ Chí Minh</p>
-                        <span class="edu-date">2016 - 2020</span>
-                    </div>
-                </section>
-
-                <section class="main-section">
-                    <h2 class="section-title main-section-title">Chứng chỉ</h2>
-                    <div class="cert-list">
-                        <span class="cert-item">AWS Certified Cloud Practitioner</span>
-                        <span class="cert-item">JavaScript Algorithms (freeCodeCamp)</span>
-                        <span class="cert-item">React Developer Certification</span>
-                    </div>
-                </section>
-            </main>
         </div>
 
-        <footer class="cv-footer">
-            <p>© 2024 Nguyễn Văn A - Tất cả quyền bảo lưu.</p>
-        </footer>
+        <!-- Online Room Invite Badge (Shown when in Online Room) -->
+        <div id="ui-room-badge" class="hidden items-center gap-2 bg-indigo-950/90 border border-indigo-500/40 px-3 py-1 rounded-full shadow-lg">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-[11px] text-indigo-200 font-semibold">Room:</span>
+            <span id="ui-room-code-text" class="font-mono-num text-xs sm:text-sm font-black text-amber-400 tracking-widest">------</span>
+            <button onclick="game.copyRoomCode()" class="ml-1 px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold transition flex items-center gap-1" title="Copy Room Code">
+                <i class="fa-regular fa-copy"></i> <span id="ui-copy-btn-text">Copy</span>
+            </button>
+        </div>
+
+        <!-- Game Telemetry -->
+        <div class="hidden lg:flex items-center gap-5 bg-slate-900/90 px-4 py-1.5 rounded-full border border-slate-800">
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 uppercase tracking-wider">Hand</span>
+                <span id="ui-hand-num" class="font-mono-num text-sm text-white font-bold">#1</span>
+            </div>
+            <div class="h-3 w-[1px] bg-slate-700"></div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 uppercase tracking-wider">Blinds</span>
+                <span id="ui-blinds" class="font-mono-num text-sm text-amber-400 font-bold">$10 / $20</span>
+            </div>
+            <div class="h-3 w-[1px] bg-slate-700"></div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 uppercase tracking-wider">Street</span>
+                <span id="ui-phase-badge" class="text-xs font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Waiting</span>
+            </div>
+        </div>
+
+        <!-- Right Controls -->
+        <div class="flex items-center gap-2">
+            <button onclick="ui.toggleModal('modal-multiplayer')" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white border border-indigo-400/30 text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-indigo-600/25">
+                <i class="fa-solid fa-users"></i> <span>Invite Friends / Lobby</span>
+            </button>
+            <button id="btn-rebuy" onclick="game.rebuyHuman()" class="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition flex items-center gap-1.5" title="Top-up Stack">
+                <i class="fa-solid fa-coins"></i> <span class="hidden md:inline">Top-Up</span>
+            </button>
+            <button onclick="ui.toggleModal('modal-rankings')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center gap-1.5" title="Hand Rankings">
+                <i class="fa-solid fa-trophy text-amber-400"></i> <span class="hidden xl:inline">Ranks</span>
+            </button>
+            <button onclick="ui.toggleLogDrawer()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center gap-1.5 xl:hidden">
+                <i class="fa-solid fa-list-ul text-amber-400"></i>
+            </button>
+            <button id="btn-sound" onclick="sound.toggleMute()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center transition">
+                <i class="fa-solid fa-volume-high text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN WORKSPACE: TABLE + LOG SIDEBAR -->
+    <main class="flex-1 relative flex items-center justify-center overflow-hidden px-4 py-6">
+        
+        <!-- POKER TABLE CONTAINER -->
+        <div class="relative w-full max-w-[940px] h-[410px] sm:h-[465px] lg:h-[505px] poker-table-outer p-5 sm:p-7 flex items-center justify-center my-auto">
+            <div class="w-full h-full poker-table-felt flex flex-col items-center justify-center relative">
+                
+                <!-- Center Table Watermark -->
+                <div class="pointer-events-none flex flex-col items-center justify-center opacity-20 mb-24">
+                    <div class="font-casino text-amber-300 text-xs sm:text-sm tracking-[0.35em]">MONTE CARLO CASINO</div>
+                    <div class="text-[10px] tracking-[0.25em] text-amber-200">MULTIPLAYER NO-LIMIT HOLD'EM</div>
+                </div>
+
+                <!-- TOTAL POT & SIDE POTS DISPLAY -->
+                <div class="absolute top-[21%] flex flex-col items-center z-20">
+                    <div class="bg-slate-950/85 border border-amber-500/40 px-4 py-1.5 rounded-full shadow-xl flex items-center gap-2.5 backdrop-blur-md">
+                        <div class="poker-chip bg-amber-600 text-white">$</div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] uppercase tracking-wider text-slate-400 leading-none">Total Pot</span>
+                            <span id="ui-total-pot" class="font-mono-num text-base sm:text-lg font-extrabold text-amber-400 leading-tight">$0</span>
+                        </div>
+                    </div>
+                    <!-- Side Pots Breakdown Pills -->
+                    <div id="ui-side-pots" class="flex flex-wrap items-center justify-center gap-1.5 mt-1.5"></div>
+                </div>
+
+                <!-- COMMUNITY CARDS BOARD -->
+                <div class="z-20 flex items-center justify-center gap-1.5 sm:gap-2.5 my-2 min-h-[92px] lg:min-h-[110px] px-4 py-2 rounded-2xl bg-black/25 border border-white/10 shadow-inner">
+                    <div id="community-slot-0" class="w-[56px] h-[80px] lg:w-[72px] lg:h-[102px] rounded-lg border border-dashed border-white/15 flex items-center justify-center"></div>
+                    <div id="community-slot-1" class="w-[56px] h-[80px] lg:w-[72px] lg:h-[102px] rounded-lg border border-dashed border-white/15 flex items-center justify-center"></div>
+                    <div id="community-slot-2" class="w-[56px] h-[80px] lg:w-[72px] lg:h-[102px] rounded-lg border border-dashed border-white/15 flex items-center justify-center"></div>
+                    <div id="community-slot-3" class="w-[56px] h-[80px] lg:w-[72px] lg:h-[102px] rounded-lg border border-dashed border-white/15 flex items-center justify-center"></div>
+                    <div id="community-slot-4" class="w-[56px] h-[80px] lg:w-[72px] lg:h-[102px] rounded-lg border border-dashed border-white/15 flex items-center justify-center"></div>
+                </div>
+
+                <!-- ANNOUNCEMENT BANNER (Winners / Street Progression) -->
+                <div id="ui-table-banner" class="absolute bottom-[24%] z-30 pointer-events-none transition-all duration-300 opacity-0 transform translate-y-2">
+                    <div class="bg-slate-950/95 border-2 border-amber-400 px-5 py-2 rounded-xl shadow-2xl text-center">
+                        <div id="ui-banner-title" class="font-casino text-amber-400 font-bold text-sm sm:text-base tracking-wide">SHOWDOWN</div>
+                        <div id="ui-banner-sub" class="text-xs text-white font-medium mt-0.5">Player wins $450 with a Full House</div>
+                    </div>
+                </div>
+
+                <!-- DEALER BUTTON -->
+                <div id="ui-dealer-btn" class="dealer-pos-0 absolute z-20 w-7 h-7 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 text-slate-950 font-black text-xs flex items-center justify-center shadow-lg border-2 border-white transition-all duration-500">
+                    D
+                </div>
+
+                <!-- PLAYER BET CHIPS ON FELT -->
+                <div id="bet-chip-0" class="bet-pos-0 absolute z-20 hidden"></div>
+                <div id="bet-chip-1" class="bet-pos-1 absolute z-20 hidden"></div>
+                <div id="bet-chip-2" class="bet-pos-2 absolute z-20 hidden"></div>
+                <div id="bet-chip-3" class="bet-pos-3 absolute z-20 hidden"></div>
+                <div id="bet-chip-4" class="bet-pos-4 absolute z-20 hidden"></div>
+                <div id="bet-chip-5" class="bet-pos-5 absolute z-20 hidden"></div>
+
+                <!-- 6 PLAYER SEATS -->
+                <div id="seats-container" class="absolute inset-0 pointer-events-none">
+                    <!-- Populated dynamically by JS -->
+                </div>
+
+            </div>
+        </div>
+
+        <!-- LIVE GAME LOG & HAND TELEMETRY DRAWER -->
+        <aside id="log-drawer" class="fixed xl:static right-0 top-14 bottom-24 w-80 bg-slate-950/95 border-l border-slate-800/90 flex flex-col z-30 transform translate-x-full xl:translate-x-0 transition-transform duration-300 backdrop-blur-md h-[calc(100vh-9.5rem)] xl:h-full xl:ml-6 rounded-l-2xl xl:rounded-2xl border">
+            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Casino Action Log</h2>
+                </div>
+                <button onclick="ui.toggleLogDrawer()" class="xl:hidden text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Action Log Stream -->
+            <div id="ui-action-log" class="flex-1 overflow-y-auto p-3.5 space-y-2 text-xs">
+                <!-- Populated dynamically -->
+            </div>
+
+            <!-- Live Hand Strength Meter for Active/Local Human Player -->
+            <div class="p-3.5 bg-slate-900/90 border-t border-slate-800 rounded-b-2xl">
+                <div class="flex items-center justify-between mb-1">
+                    <span id="ui-hand-meter-label" class="text-[11px] text-slate-400 font-medium">Your Best 5-Card Hand</span>
+                    <span id="ui-user-hand-rank" class="text-xs font-bold text-amber-400">—</span>
+                </div>
+                <div id="ui-user-hand-cards" class="text-[11px] font-mono-num text-slate-300 truncate">
+                    Waiting for deal...
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- BOTTOM ACTION & BIDDING CONTROL BAR -->
+    <footer class="w-full h-auto min-h-[5.5rem] bg-slate-950/95 border-t border-amber-500/20 px-4 lg:px-8 py-2.5 flex flex-col md:flex-row items-center justify-between gap-3 z-40 backdrop-blur-md">
+        
+        <!-- Left: Next Hand / Status / Pot Odds -->
+        <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+            <div class="flex items-center gap-2.5">
+                <button id="btn-deal-next" onclick="game.requestStartNewHand()" class="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition transform active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-play"></i> <span id="btn-deal-text">Deal Hand</span>
+                </button>
+                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
+                    <input type="checkbox" id="chk-auto-deal" class="accent-amber-400 rounded cursor-pointer" onchange="game.toggleAutoDeal(this.checked)">
+                    <span>Auto-Deal</span>
+                </label>
+            </div>
+
+            <!-- Live Pot Odds Helper -->
+            <div class="flex items-center gap-3 bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-slate-800">
+                <div>
+                    <div class="text-[10px] text-slate-400 uppercase">To Call</div>
+                    <div id="ui-to-call" class="font-mono-num text-xs font-bold text-white">$0</div>
+                </div>
+                <div class="h-5 w-[1px] bg-slate-800"></div>
+                <div>
+                    <div class="text-[10px] text-slate-400 uppercase">Pot Odds</div>
+                    <div id="ui-pot-odds" class="font-mono-num text-xs font-bold text-emerald-400">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center & Right: Betting Controls & Custom Raise Slider -->
+        <div id="betting-controls" class="flex flex-wrap md:flex-nowrap items-center justify-end gap-2.5 w-full md:w-auto opacity-40 pointer-events-none transition-opacity duration-200">
+            
+            <!-- Raise Sizing Panel -->
+            <div class="flex flex-col bg-slate-900/95 border border-slate-800 rounded-xl px-3 py-1.5 w-full sm:w-auto">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Raise To:</span>
+                    <div class="flex items-center gap-1">
+                        <button onclick="game.setQuickRaise('min')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300 transition">Min</button>
+                        <button onclick="game.setQuickRaise('half')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300 transition">½ Pot</button>
+                        <button onclick="game.setQuickRaise('pot')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300 transition">Pot</button>
+                        <button onclick="game.setQuickRaise('max')" class="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-[10px] font-bold text-amber-300 border border-amber-500/30 transition">Max</button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input id="raise-slider" type="range" min="20" max="2000" step="10" value="40" class="raise-slider w-32 sm:w-40" oninput="game.syncRaiseSlider(this.value)">
+                    <div class="relative flex items-center">
+                        <span class="absolute left-2 text-xs font-mono-num text-amber-400 font-bold">$</span>
+                        <input id="raise-input" type="number" min="20" max="2000" step="10" value="40" class="w-24 pl-5 pr-2 py-1 bg-slate-950 border border-slate-700 rounded-lg font-mono-num text-xs font-bold text-white focus:outline-none focus:border-amber-400" oninput="game.syncRaiseInput(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Primary Action Buttons -->
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button id="btn-fold" onclick="game.handleHumanAction('fold')" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 font-bold text-xs sm:text-sm transition shadow-lg">
+                    Fold
+                </button>
+                <button id="btn-check-call" onclick="game.handleHumanAction('call')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs sm:text-sm transition shadow-lg shadow-sky-600/25">
+                    Check
+                </button>
+                <button id="btn-raise" onclick="game.handleHumanAction('raise')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-xs sm:text-sm transition shadow-lg shadow-emerald-500/25">
+                    Raise to $40
+                </button>
+                <button id="btn-allin" onclick="game.handleHumanAction('allin')" class="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm transition shadow-lg">
+                    All-In
+                </button>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- PASS & PLAY PRIVACY SHIELD OVERLAY -->
+    <div id="pass-play-shield" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 hidden flex-col items-center justify-center p-6 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center mb-4">
+            <i class="fa-solid fa-user-secret text-3xl text-amber-400"></i>
+        </div>
+        <div class="text-xs font-bold uppercase tracking-widest text-amber-400 mb-1">Pass & Play Privacy Shield</div>
+        <h2 id="shield-player-name" class="font-casino text-2xl sm:text-3xl font-extrabold text-white mb-2">Pass Device to Player 2</h2>
+        <p class="text-xs sm:text-sm text-slate-400 max-w-md mb-6">
+            Other players' hole cards are hidden. Make sure only <span id="shield-player-inline" class="text-white font-bold">Player 2</span> is looking at the screen before revealing cards.
+        </p>
+        <button onclick="game.revealPassAndPlayTurn()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/25 transition transform active:scale-95 flex items-center gap-2">
+            <i class="fa-solid fa-eye"></i> <span>I am Ready — Reveal My Cards</span>
+        </button>
     </div>
+
+    <!-- MULTIPLAYER & TABLE SETUP LOBBY MODAL -->
+    <div id="modal-multiplayer" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/30 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-users-gear text-amber-400 text-lg"></i>
+                    <div>
+                        <h3 class="font-casino text-amber-400 font-bold text-base sm:text-lg leading-none">Multiplayer & Table Manager</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Play online with friends + AI bots, Local Pass & Play, or Solo</p>
+                    </div>
+                </div>
+                <button onclick="ui.toggleModal('modal-rankings'); ui.closeModal('modal-multiplayer')" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-6 text-xs sm:text-sm">
+                
+                <!-- Player Identity Bar -->
+                <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <select id="mp-player-avatar" class="bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-2 text-lg cursor-pointer">
+                            <option value="😎">😎</option>
+                            <option value="🤠">🤠</option>
+                            <option value="🦊">🦊</option>
+                            <option value="🦁">🦁</option>
+                            <option value="👑">👑</option>
+                            <option value="🎩">🎩</option>
+                            <option value="🦈">🦈</option>
+                            <option value="💎">💎</option>
+                        </select>
+                        <div class="flex-1 sm:w-56">
+                            <label class="text-[10px] uppercase tracking-wider text-slate-400 font-bold block mb-1">Your Display Name</label>
+                            <input id="mp-player-name" type="text" maxlength="18" value="HighRoller" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-bold text-xs focus:outline-none focus:border-amber-400">
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-start sm:items-end text-[11px] text-slate-400">
+                        <div class="flex items-center gap-1.5">
+                            <span id="mp-cloud-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                            <span id="mp-cloud-status" class="font-semibold text-slate-300">Cloud Sync Ready</span>
+                        </div>
+                        <div class="font-mono-num text-[10px] text-slate-500 mt-0.5 truncate max-w-[230px]" id="mp-user-id-display">ID: Initializing...</div>
+                    </div>
+                </div>
+
+                <!-- 3 Mode Cards: Online Room / Local Pass & Play / Solo vs Bots -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Create or Join Online Room -->
+                    <div class="bg-slate-950/70 border border-indigo-500/30 rounded-xl p-4 flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold text-[10px] uppercase">Real-Time Online</span>
+                                <i class="fa-solid fa-earth-americas text-indigo-400"></i>
+                            </div>
+                            <h4 class="font-bold text-white text-sm">Play Online with Friends + Bots</h4>
+                            <p class="text-xs text-slate-400 mt-1">Create a private 6-max table and share the 6-character code with friends. Fill remaining seats with smart AI bots!</p>
+                        </div>
+
+                        <div class="space-y-3 pt-2 border-t border-slate-800/80">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Starting Stack</label>
+                                    <select id="mp-start-stack" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-amber-400">
+                                        <option value="1000">$1,000</option>
+                                        <option value="2000" selected>$2,000</option>
+                                        <option value="5000">$5,000</option>
+                                        <option value="10000">$10,000</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Initial AI Bots</label>
+                                    <select id="mp-bot-count" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white">
+                                        <option value="0">0 Bots (Friends Only)</option>
+                                        <option value="2">2 AI Bots</option>
+                                        <option value="3" selected>3 AI Bots</option>
+                                        <option value="4">4 AI Bots</option>
+                                        <option value="5">5 AI Bots</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button onclick="game.createOnlineRoom()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white font-extrabold text-xs shadow-lg shadow-indigo-500/25 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus-circle"></i> <span>Create Online Room & Get Code</span>
+                            </button>
+
+                            <div class="flex items-center gap-2 pt-1">
+                                <input id="mp-join-code" type="text" maxlength="6" placeholder="ENTER 6-DIGIT CODE" class="flex-1 uppercase font-mono-num tracking-widest text-center px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-amber-400 font-bold text-xs focus:outline-none focus:border-indigo-400">
+                                <button onclick="game.joinOnlineRoomInput()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">
+                                    Join Room
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Local Pass & Play OR Solo Mode -->
+                    <div class="bg-slate-950/70 border border-amber-500/25 rounded-xl p-4 flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px] uppercase">Same Device / Instant Solo</span>
+                                <i class="fa-solid fa-couch text-amber-400"></i>
+                            </div>
+                            <h4 class="font-bold text-white text-sm">Local Pass & Play (Friends + Bots)</h4>
+                            <p class="text-xs text-slate-400 mt-1">Play with 2 to 6 human friends on one screen alongside AI bots. Includes an automatic privacy shield between human turns.</p>
+                        </div>
+
+                        <div class="space-y-3 pt-2 border-t border-slate-800/80">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Human Friends</label>
+                                    <select id="local-human-count" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-emerald-400">
+                                        <option value="1">1 Human (Solo Mode)</option>
+                                        <option value="2" selected>2 Humans (Pass & Play)</option>
+                                        <option value="3">3 Humans (Pass & Play)</option>
+                                        <option value="4">4 Humans (Pass & Play)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">AI Bot Opponents</label>
+                                    <select id="local-bot-count" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white">
+                                        <option value="0">0 Bots</option>
+                                        <option value="2">2 AI Bots</option>
+                                        <option value="3">3 AI Bots</option>
+                                        <option value="4" selected>4 AI Bots</option>
+                                        <option value="5">5 AI Bots</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button onclick="game.startCustomLocalTable()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i> <span>Launch Local / Pass & Play Table</span>
+                            </button>
+
+                            <button onclick="game.resetFullTable(); ui.closeModal('modal-multiplayer')" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition">
+                                Quick Reset: Classic 1 Human vs 5 Bots
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Seat & Bot Manager (Active Room or Current Table) -->
+                <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div>
+                            <h4 class="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Current Table Seats (6-Max)</h4>
+                            <p class="text-[11px] text-slate-400">Add or remove AI Bots on open seats anytime between hands so your friends can jump in!</p>
+                        </div>
+                        <div id="mp-room-controls" class="hidden items-center gap-2">
+                            <button onclick="game.leaveOnlineRoom()" class="px-3 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-bold transition">
+                                Leave Online Room
+                            </button>
+                        </div>
+                    </div>
+                    <div id="mp-seats-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                        <!-- Dynamically rendered seat cards -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- HAND RANKINGS MODAL -->
+    <div id="modal-rankings" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/30 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-crown text-amber-400"></i>
+                    <h3 class="font-casino text-amber-400 font-bold text-lg">Official Texas Hold'em Hand Rankings</h3>
+                </div>
+                <button onclick="ui.closeModal('modal-rankings')" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-3 text-xs sm:text-sm">
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">1. Royal Flush</span> <p class="text-xs text-slate-400">A, K, Q, J, 10 all of the same suit.</p></div>
+                    <div class="font-mono-num font-bold text-rose-400">A♥ K♥ Q♥ J♥ 10♥</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">2. Straight Flush</span> <p class="text-xs text-slate-400">Five consecutive cards of the same suit.</p></div>
+                    <div class="font-mono-num font-bold text-slate-200">9♠ 8♠ 7♠ 6♠ 5♠</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">3. Four of a Kind</span> <p class="text-xs text-slate-400">Four cards of matching rank + 1 kicker.</p></div>
+                    <div class="font-mono-num font-bold text-slate-200">Q♠ Q♥ Q♦ Q♣ 7♠</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">4. Full House</span> <p class="text-xs text-slate-400">Three of a Kind combined with a Pair.</p></div>
+                    <div class="font-mono-num font-bold text-slate-200">J♠ J♥ J♦ 4♣ 4♠</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">5. Flush</span> <p class="text-xs text-slate-400">Any five cards of the same suit (non-consecutive).</p></div>
+                    <div class="font-mono-num font-bold text-rose-400">A♦ J♦ 8♦ 6♦ 2♦</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">6. Straight</span> <p class="text-xs text-slate-400">Five consecutive cards of mixed suits (Ace can be high or low A-2-3-4-5).</p></div>
+                    <div class="font-mono-num font-bold text-slate-200">10♠ 9♥ 8♦ 7♣ 6♠</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">7. Three of a Kind</span> <p class="text-xs text-slate-400">Three cards of the same rank + 2 kickers.</p></div>
+                    <div class="font-mono-num font-bold text-slate-200">8♠ 8♥ 8♦ K♣ 3♠</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">8. Two Pair</span> <p class="text-xs text-slate-400">Two different pairs + 1 fifth kicker card.</p></div>
+                    <div class="font-mono-num font-bold text-slate-200">K♠ K♥ 9♦ 9♣ A♠</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">9. One Pair</span> <p class="text-xs text-slate-400">Two cards of the same rank + 3 kickers.</p></div>
+                    <div class="font-mono-num font-bold text-slate-200">A♠ A♥ Q♦ 8♣ 4♠</div>
+                </div>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                    <div><span class="font-bold text-amber-400">10. High Card</span> <p class="text-xs text-slate-400">Highest card plays when no combination above is made.</p></div>
+                    <div class="font-mono-num font-bold text-slate-200">A♠ Q♥ 9♦ 6♣ 2♠</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE REAL-TIME MULTIPLAYER & GAME ENGINE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        /**
+         * ============================================================================
+         * 1. WEB AUDIO SYNTHESIZER (Casino Sound Effects without external files)
+         * ============================================================================
+         */
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                const btn = document.getElementById('btn-sound');
+                btn.innerHTML = this.muted 
+                    ? '<i class="fa-solid fa-volume-xmark text-xs text-rose-400"></i>' 
+                    : '<i class="fa-solid fa-volume-high text-xs"></i>';
+            }
+
+            playCard() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.06);
+                gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.06);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.06);
+            }
+
+            playChip() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1650, this.ctx.currentTime);
+                osc.frequency.setValueAtTime(2200, this.ctx.currentTime + 0.03);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.09);
+            }
+
+            playCheck() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playFold() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(85, this.ctx.currentTime + 0.11);
+                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.11);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.11);
+            }
+
+            playWin() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.07);
+                    gain.gain.setValueAtTime(0.14, this.ctx.currentTime + idx * 0.07);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.07 + 0.35);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.07);
+                    osc.stop(this.ctx.currentTime + idx * 0.07 + 0.35);
+                });
+            }
+        }
+
+        const sound = new SoundEffects();
+        window.sound = sound;
+
+        /**
+         * ============================================================================
+         * 2. COMPLETE 7-CARD TEXAS HOLD'EM HAND EVALUATOR & TIE-BREAKER ENGINE
+         * ============================================================================
+         */
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+        const RANK_LABELS = {
+            2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8',
+            9: '9', 10: '10', 11: 'J', 12: 'Q', 13: 'K', 14: 'A'
+        };
+        const RANK_NAMES_SINGULAR = {
+            2: 'Two', 3: 'Three', 4: 'Four', 5: 'Five', 6: 'Six', 7: 'Seven', 8: 'Eight',
+            9: 'Nine', 10: 'Ten', 11: 'Jack', 12: 'Queen', 13: 'King', 14: 'Ace'
+        };
+        const RANK_NAMES_PLURAL = {
+            2: 'Twos', 3: 'Threes', 4: 'Fours', 5: 'Fives', 6: 'Sixes', 7: 'Sevens', 8: 'Eights',
+            9: 'Nines', 10: 'Tens', 11: 'Jacks', 12: 'Queens', 13: 'Kings', 14: 'Aces'
+        };
+
+        const HAND_CATEGORY_NAMES = [
+            'High Card',
+            'One Pair',
+            'Two Pair',
+            'Three of a Kind',
+            'Straight',
+            'Flush',
+            'Full House',
+            'Four of a Kind',
+            'Straight Flush',
+            'Royal Flush'
+        ];
+
+        const BOT_PROFILES = [
+            { name: 'Viktor "The Viper"', avatar: '🕶️', style: 'LAG • Aggressive', aggression: 0.82, tightness: 0.35, bluffFreq: 0.24 },
+            { name: 'Duchess Elena', avatar: '👑', style: 'TAG • Calculating', aggression: 0.68, tightness: 0.65, bluffFreq: 0.12 },
+            { name: 'Arthur Pendelton', avatar: '🎩', style: 'Nit • Ultra-Tight', aggression: 0.42, tightness: 0.76, bluffFreq: 0.05 },
+            { name: 'Chloe "Wildcard"', avatar: '🦊', style: 'Maniac • Unpredictable', aggression: 0.90, tightness: 0.25, bluffFreq: 0.32 },
+            { name: 'Don Matteo', avatar: '🥃', style: 'Calling Station', aggression: 0.35, tightness: 0.28, bluffFreq: 0.08 }
+        ];
+
+        class HandEvaluator {
+            static getCombinations(arr, k) {
+                if (k === 0) return [[]];
+                if (arr.length === 0) return [];
+                const head = arr[0];
+                const tail = arr.slice(1);
+                const withHead = HandEvaluator.getCombinations(tail, k - 1).map(c => [head, ...c]);
+                const withoutHead = HandEvaluator.getCombinations(tail, k);
+                return withHead.concat(withoutHead);
+            }
+
+            static evaluate5CardHand(cards5) {
+                const sorted = [...cards5].sort((a, b) => b.rank - a.rank);
+                const ranks = sorted.map(c => c.rank);
+                const suits = sorted.map(c => c.suit);
+
+                const isFlush = suits.every(s => s === suits[0]);
+
+                let isStraight = false;
+                let straightHigh = 0;
+                const uniqueRanks = [...new Set(ranks)];
+                if (uniqueRanks.length === 5) {
+                    if (ranks[0] - ranks[4] === 4) {
+                        isStraight = true;
+                        straightHigh = ranks[0];
+                    } else if (
+                        ranks[0] === 14 &&
+                        ranks[1] === 5 &&
+                        ranks[2] === 4 &&
+                        ranks[3] === 3 &&
+                        ranks[4] === 2
+                    ) {
+                        isStraight = true;
+                        straightHigh = 5;
+                    }
+                }
+
+                const counts = {};
+                for (const r of ranks) counts[r] = (counts[r] || 0) + 1;
+
+                const groups = Object.keys(counts)
+                    .map(r => ({ rank: Number(r), count: counts[r] }))
+                    .sort((a, b) => b.count - a.count || b.rank - a.rank);
+
+                let category = 0;
+                let tieBreakers = [];
+                let description = '';
+
+                if (isFlush && isStraight) {
+                    if (straightHigh === 14) {
+                        category = 9;
+                        tieBreakers = [14];
+                        description = 'Royal Flush';
+                    } else {
+                        category = 8;
+                        tieBreakers = [straightHigh];
+                        description = `Straight Flush, ${RANK_NAMES_SINGULAR[straightHigh]} High`;
+                    }
+                } else if (groups[0].count === 4) {
+                    category = 7;
+                    tieBreakers = [groups[0].rank, groups[1].rank];
+                    description = `Four of a Kind, ${RANK_NAMES_PLURAL[groups[0].rank]}`;
+                } else if (groups[0].count === 3 && groups[1].count === 2) {
+                    category = 6;
+                    tieBreakers = [groups[0].rank, groups[1].rank];
+                    description = `Full House, ${RANK_NAMES_PLURAL[groups[0].rank]} full of ${RANK_NAMES_PLURAL[groups[1].rank]}`;
+                } else if (isFlush) {
+                    category = 5;
+                    tieBreakers = ranks;
+                    description = `Flush, ${RANK_NAMES_SINGULAR[ranks[0]]} High`;
+                } else if (isStraight) {
+                    category = 4;
+                    tieBreakers = [straightHigh];
+                    description = `Straight, ${RANK_NAMES_SINGULAR[straightHigh]} High`;
+                } else if (groups[0].count === 3) {
+                    category = 3;
+                    tieBreakers = [groups[0].rank, groups[1].rank, groups[2].rank];
+                    description = `Three of a Kind, ${RANK_NAMES_PLURAL[groups[0].rank]}`;
+                } else if (groups[0].count === 2 && groups[1].count === 2) {
+                    category = 2;
+                    tieBreakers = [groups[0].rank, groups[1].rank, groups[2].rank];
+                    description = `Two Pair, ${RANK_NAMES_PLURAL[groups[0].rank]} & ${RANK_NAMES_PLURAL[groups[1].rank]}`;
+                } else if (groups[0].count === 2) {
+                    category = 1;
+                    tieBreakers = [groups[0].rank, groups[1].rank, groups[2].rank, groups[3].rank];
+                    description = `Pair of ${RANK_NAMES_PLURAL[groups[0].rank]}`;
+                } else {
+                    category = 0;
+                    tieBreakers = ranks;
+                    description = `High Card, ${RANK_NAMES_SINGULAR[ranks[0]]}`;
+                }
+
+                let numericScore = category;
+                for (let i = 0; i < 5; i++) {
+                    numericScore = numericScore * 15 + (tieBreakers[i] || 0);
+                }
+
+                return {
+                    category,
+                    categoryName: HAND_CATEGORY_NAMES[category],
+                    description,
+                    numericScore,
+                    tieBreakers,
+                    best5: sorted
+                };
+            }
+
+            static evaluateBestHand(cards) {
+                if (!cards || cards.length < 5) return null;
+                const combos = HandEvaluator.getCombinations(cards, 5);
+                let bestEval = null;
+                for (const combo of combos) {
+                    const current = HandEvaluator.evaluate5CardHand(combo);
+                    if (!bestEval || current.numericScore > bestEval.numericScore) {
+                        bestEval = current;
+                    }
+                }
+                return bestEval;
+            }
+
+            static evaluatePreFlopStrength(holeCards) {
+                if (!holeCards || holeCards.length < 2) return 0.3;
+                const c1 = holeCards[0];
+                const c2 = holeCards[1];
+                const high = Math.max(c1.rank, c2.rank);
+                const low = Math.min(c1.rank, c2.rank);
+                const isPair = high === low;
+                const isSuited = c1.suit === c2.suit;
+                const gap = high - low;
+
+                let points = high / 14 * 0.48;
+                if (isPair) {
+                    points = 0.55 + (high / 14) * 0.42;
+                } else {
+                    points += (low / 14) * 0.18;
+                    if (isSuited) points += 0.08;
+                    if (gap === 1) points += 0.07;
+                    else if (gap === 2) points += 0.04;
+                    else if (gap >= 4) points -= 0.06;
+                }
+                return Math.max(0.08, Math.min(0.99, points));
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 3. DECK & USER INTERFACE RENDERER
+         * ============================================================================
+         */
+        class Deck {
+            constructor() {
+                this.cards = [];
+                this.reset();
+            }
+
+            reset() {
+                this.cards = [];
+                for (const suit of SUITS) {
+                    for (const rank of RANKS) {
+                        this.cards.push({
+                            rank,
+                            suit,
+                            id: `${RANK_LABELS[rank]}${suit}`
+                        });
+                    }
+                }
+                this.shuffle();
+            }
+
+            shuffle() {
+                for (let i = this.cards.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
+                }
+            }
+
+            draw() {
+                return this.cards.pop();
+            }
+        }
+
+        class PokerUI {
+            constructor() {
+                this.bannerTimeout = null;
+            }
+
+            formatCurrency(amount) {
+                return '$' + Math.floor(Number(amount) || 0).toLocaleString();
+            }
+
+            createCardHTML(card, hidden = false, extraClasses = '') {
+                if (hidden || !card) {
+                    return `<div class="playing-card card-back ${extraClasses}" data-card-id="hidden"></div>`;
+                }
+                const isRed = card.suit === '♥' || card.suit === '♦';
+                const colorClass = isRed ? 'card-red' : 'card-black';
+                const label = RANK_LABELS[card.rank];
+
+                return `
+                    <div class="playing-card ${colorClass} ${extraClasses}" data-card-id="${card.id}">
+                        <div class="flex flex-col items-start leading-none">
+                            <span class="text-xs lg:text-sm font-extrabold tracking-tighter">${label}</span>
+                            <span class="text-[11px] lg:text-xs">${card.suit}</span>
+                        </div>
+                        <div class="self-center text-xl lg:text-2xl leading-none opacity-90">
+                            ${card.suit}
+                        </div>
+                        <div class="flex flex-col items-end leading-none rotate-180">
+                            <span class="text-xs lg:text-sm font-extrabold tracking-tighter">${label}</span>
+                            <span class="text-[11px] lg:text-xs">${card.suit}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderSeats(players, activeSeatIndex, showAllCards, viewerState) {
+                const container = document.getElementById('seats-container');
+                container.innerHTML = '';
+
+                players.forEach((p, idx) => {
+                    const seatEl = document.createElement('div');
+
+                    // Handle Open Seat in Online or Custom Mode
+                    if (p.isEmpty) {
+                        seatEl.className = `seat-pos-${idx} absolute flex flex-col items-center pointer-events-auto`;
+                        const canSit = viewerState.mode === 'ONLINE' && viewerState.mySeatIdx === -1;
+                        seatEl.innerHTML = `
+                            <div class="h-[72px] lg:h-[84px]"></div>
+                            <div class="w-36 sm:w-44 bg-slate-950/75 border-2 border-dashed border-slate-700 hover:border-amber-400/60 rounded-2xl px-3 py-3 text-center backdrop-blur-md transition">
+                                <div class="text-xs font-bold text-slate-400">Seat #${idx + 1} Open</div>
+                                ${canSit
+                                    ? `<button onclick="game.claimOnlineSeat(${idx})" class="mt-1.5 px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-[11px] transition">Sit Here</button>`
+                                    : `<div class="text-[10px] text-slate-500 mt-0.5">Waiting for player/bot</div>`
+                                }
+                            </div>
+                        `;
+                        container.appendChild(seatEl);
+                        document.getElementById(`bet-chip-${idx}`).classList.add('hidden');
+                        return;
+                    }
+
+                    const isTurn = idx === activeSeatIndex;
+                    const isFolded = p.folded;
+                    const isBusted = p.busted;
+
+                    // Privacy logic for showing hole cards
+                    let showHole = false;
+                    if (showAllCards || p.revealCards) {
+                        showHole = true;
+                    } else if (viewerState.mode === 'ONLINE') {
+                        showHole = p.ownerId && p.ownerId === viewerState.myUserId;
+                    } else if (viewerState.mode === 'PASS_AND_PLAY') {
+                        showHole = p.isHuman && idx === activeSeatIndex && !viewerState.shieldActive;
+                    } else {
+                        // Solo mode
+                        showHole = p.isHuman;
+                    }
+
+                    let statusBadge = '';
+                    if (isBusted) {
+                        statusBadge = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-500 text-[10px] font-bold uppercase">Busted</span>`;
+                    } else if (p.allIn) {
+                        statusBadge = `<span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px] font-black uppercase animate-pulse">ALL-IN</span>`;
+                    } else if (isFolded) {
+                        statusBadge = `<span class="px-2 py-0.5 rounded bg-rose-950/90 text-rose-400 border border-rose-500/30 text-[10px] font-bold uppercase">Folded</span>`;
+                    } else if (p.lastActionText) {
+                        statusBadge = `<span class="px-2 py-0.5 rounded bg-emerald-950/90 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase">${p.lastActionText}</span>`;
+                    }
+
+                    // Render player hole cards
+                    let cardsHTML = '';
+                    if (!isBusted && p.hand && p.hand.length === 2) {
+                        const c1 = this.createCardHTML(
+                            p.hand[0],
+                            !showHole,
+                            `${isFolded ? 'dimmed-card' : ''} ${p.winningCardIds?.includes(p.hand[0].id) ? 'winning-card' : ''}`
+                        );
+                        const c2 = this.createCardHTML(
+                            p.hand[1],
+                            !showHole,
+                            `-ml-3 ${isFolded ? 'dimmed-card' : ''} ${p.winningCardIds?.includes(p.hand[1].id) ? 'winning-card' : ''}`
+                        );
+                        cardsHTML = `<div class="flex items-center justify-center mb-1.5 z-10">${c1}${c2}</div>`;
+                    } else {
+                        cardsHTML = `<div class="h-[72px] lg:h-[84px]"></div>`;
+                    }
+
+                    const isMe = viewerState.mode === 'ONLINE' && p.ownerId === viewerState.myUserId;
+                    const youTag = isMe ? `<span class="ml-1 px-1.5 py-0.2 rounded bg-indigo-500/30 border border-indigo-400/40 text-[9px] text-indigo-200 font-bold">YOU</span>` : '';
+
+                    seatEl.className = `seat-pos-${idx} absolute flex flex-col items-center pointer-events-auto transition-all duration-300 ${isBusted ? 'opacity-45' : ''}`;
+                    seatEl.innerHTML = `
+                        ${cardsHTML}
+                        <div class="w-36 sm:w-44 bg-slate-950/95 border-2 ${isTurn ? 'active-turn-glow' : p.isWinner ? 'border-amber-400 shadow-lg shadow-amber-500/30' : isMe ? 'border-indigo-400/80' : 'border-slate-700/80'} rounded-2xl px-3 py-2 shadow-2xl backdrop-blur-md">
+                            <div class="flex items-center justify-between gap-1">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="text-sm">${p.avatar}</span>
+                                    <div class="truncate">
+                                        <div class="text-xs font-bold text-white truncate leading-tight flex items-center">${p.name}${youTag}</div>
+                                        <div class="text-[10px] text-slate-400 leading-none truncate">${p.style}</div>
+                                    </div>
+                                </div>
+                                ${statusBadge}
+                            </div>
+                            <div class="mt-1.5 pt-1.5 border-t border-slate-800/90 flex items-center justify-between">
+                                <span class="font-mono-num text-xs sm:text-sm font-extrabold text-amber-400">${this.formatCurrency(p.chips)}</span>
+                                <span class="text-[10px] text-slate-300 font-semibold truncate max-w-[85px]">${showHole ? (p.evaluatedText || '') : ''}</span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(seatEl);
+
+                    const betChipEl = document.getElementById(`bet-chip-${idx}`);
+                    if (p.currentBet > 0) {
+                        betChipEl.classList.remove('hidden');
+                        betChipEl.innerHTML = `
+                            <div class="flex items-center gap-1.5 bg-slate-950/90 border border-amber-400/50 px-2.5 py-1 rounded-full shadow-lg">
+                                <span class="poker-chip bg-rose-600 text-white">$</span>
+                                <span class="font-mono-num text-xs font-bold text-white">${this.formatCurrency(p.currentBet)}</span>
+                            </div>
+                        `;
+                    } else {
+                        betChipEl.classList.add('hidden');
+                    }
+                });
+            }
+
+            renderCommunityCards(communityCards, winningCardIds = [], highlightMode = false) {
+                for (let i = 0; i < 5; i++) {
+                    const slot = document.getElementById(`community-slot-${i}`);
+                    const card = communityCards[i];
+                    if (card) {
+                        const isWinning = winningCardIds.includes(card.id);
+                        const extra = `community-card animate-deal ${highlightMode ? (isWinning ? 'winning-card' : 'dimmed-card') : ''}`;
+                        slot.innerHTML = this.createCardHTML(card, false, extra);
+                        slot.classList.remove('border-dashed', 'border-white/15');
+                        slot.classList.add('border-transparent');
+                    } else {
+                        slot.innerHTML = '';
+                        slot.classList.add('border-dashed', 'border-white/15');
+                        slot.classList.remove('border-transparent');
+                    }
+                }
+            }
+
+            updateDealerButton(dealerIdx) {
+                const btn = document.getElementById('ui-dealer-btn');
+                btn.className = `dealer-pos-${dealerIdx} absolute z-20 w-7 h-7 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 text-slate-950 font-black text-xs flex items-center justify-center shadow-lg border-2 border-white transition-all duration-500`;
+            }
+
+            updatePotDisplay(totalPot, sidePots = []) {
+                document.getElementById('ui-total-pot').textContent = this.formatCurrency(totalPot);
+                const sidePotsEl = document.getElementById('ui-side-pots');
+                sidePotsEl.innerHTML = '';
+
+                if (sidePots.length > 1) {
+                    sidePots.forEach((sp, i) => {
+                        const label = i === 0 ? 'Main Pot' : `Side Pot ${i}`;
+                        const pill = document.createElement('span');
+                        pill.className = 'px-2 py-0.5 rounded-full bg-slate-900/90 border border-amber-500/30 text-[10px] font-mono-num text-amber-200';
+                        pill.textContent = `${label}: ${this.formatCurrency(sp.amount)}`;
+                        sidePotsEl.appendChild(pill);
+                    });
+                }
+            }
+
+            showBanner(title, subtitle, duration = 4000) {
+                const banner = document.getElementById('ui-table-banner');
+                document.getElementById('ui-banner-title').textContent = title;
+                document.getElementById('ui-banner-sub').textContent = subtitle;
+                banner.classList.remove('opacity-0', 'translate-y-2');
+                banner.classList.add('opacity-100', 'translate-y-0');
+
+                if (this.bannerTimeout) clearTimeout(this.bannerTimeout);
+                if (duration > 0) {
+                    this.bannerTimeout = setTimeout(() => {
+                        this.hideBanner();
+                    }, duration);
+                }
+            }
+
+            hideBanner() {
+                const banner = document.getElementById('ui-table-banner');
+                banner.classList.add('opacity-0', 'translate-y-2');
+                banner.classList.remove('opacity-100', 'translate-y-0');
+            }
+
+            addLog(message, type = 'normal') {
+                const logEl = document.getElementById('ui-action-log');
+                const entry = document.createElement('div');
+                const colors = {
+                    normal: 'text-slate-300 border-slate-800',
+                    street: 'text-amber-300 font-bold bg-amber-500/10 border-amber-500/30',
+                    win: 'text-emerald-300 font-bold bg-emerald-500/10 border-emerald-500/30',
+                    fold: 'text-slate-500 border-slate-800/50',
+                    raise: 'text-sky-300 border-sky-500/30 bg-sky-500/5'
+                };
+                entry.className = `px-2.5 py-1.5 rounded-lg border ${colors[type] || colors.normal}`;
+                entry.innerHTML = message;
+                logEl.appendChild(entry);
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+
+            renderLogArray(logs = []) {
+                const logEl = document.getElementById('ui-action-log');
+                logEl.innerHTML = '';
+                logs.forEach(item => {
+                    this.addLog(item.msg, item.type);
+                });
+            }
+
+            toggleModal(id) {
+                const modal = document.getElementById(id);
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    if (id === 'modal-multiplayer' && window.game) {
+                        window.game.renderLobbySeatsGrid();
+                    }
+                } else {
+                    this.closeModal(id);
+                }
+            }
+
+            closeModal(id) {
+                const modal = document.getElementById(id);
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            }
+
+            toggleLogDrawer() {
+                const drawer = document.getElementById('log-drawer');
+                drawer.classList.toggle('translate-x-full');
+            }
+        }
+
+        const ui = new PokerUI();
+        window.ui = ui;
+
+        /**
+         * ============================================================================
+         * 4. MULTIPLAYER & AI TEXAS HOLD'EM ENGINE
+         * ============================================================================
+         */
+        class TexasHoldemGame {
+            constructor() {
+                this.deck = new Deck();
+                this.players = [];
+                this.communityCards = [];
+                this.dealerIdx = 0;
+                this.currentTurnIdx = -1;
+                this.handNumber = 0;
+                this.smallBlind = 10;
+                this.bigBlind = 20;
+                this.currentHighestBet = 0;
+                this.minRaiseSize = 20;
+                this.totalPot = 0;
+                this.phase = 'IDLE'; // IDLE, PREFLOP, FLOP, TURN, RIVER, SHOWDOWN
+                this.autoDeal = false;
+                this.aiTimer = null;
+                this.autoDealTimer = null;
+
+                // Mode & Multiplayer State
+                this.mode = 'SOLO'; // SOLO, PASS_AND_PLAY, ONLINE
+                this.passShieldActive = false;
+                this.lastRevealedSeat = -1;
+                this.logsHistory = [];
+                this.winningCardIds = [];
+                this.bannerState = null;
+
+                // Firebase Online State
+                this.db = null;
+                this.auth = null;
+                this.user = null;
+                this.userId = 'local-' + Math.random().toString(36).substring(2, 8);
+                this.appId = typeof __app_id !== 'undefined' ? __app_id : 'royal-monte-carlo-poker';
+                this.roomCode = null;
+                this.roomHostId = null;
+                this.roomUnsubscribe = null;
+                this.lastProcessedActionTimestamp = 0;
+
+                this.initClassicSoloPlayers();
+                this.renderAll();
+                this.pushLog('Welcome to <b>Royal Monte Carlo</b>! Click <b>Invite Friends / Lobby</b> to play online with friends + bots, or click <b>Deal Hand</b>.', 'street');
+                this.initFirebase();
+            }
+
+            async initFirebase() {
+                try {
+                    if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+                        this.updateCloudStatusUI(false, 'Local Mode (Offline)');
+                        return;
+                    }
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    this.auth = getAuth(app);
+                    this.db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(this.auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(this.auth);
+                    }
+
+                    onAuthStateChanged(this.auth, (user) => {
+                        if (user) {
+                            this.user = user;
+                            this.userId = user.uid;
+                            this.updateCloudStatusUI(true, 'Online Multiplayer Ready');
+                            document.getElementById('mp-user-id-display').textContent = `Player UID: ${this.userId}`;
+                        }
+                    });
+                } catch (err) {
+                    console.warn('Firebase initialization fallback:', err);
+                    this.updateCloudStatusUI(false, 'Local Mode Ready');
+                }
+            }
+
+            updateCloudStatusUI(online, text) {
+                const dot = document.getElementById('mp-cloud-dot');
+                const label = document.getElementById('mp-cloud-status');
+                if (dot && label) {
+                    dot.className = `w-2 h-2 rounded-full ${online ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`;
+                    label.textContent = text;
+                }
+            }
+
+            createEmptySeat(idx) {
+                return {
+                    id: idx,
+                    isEmpty: true,
+                    name: `Open Seat #${idx + 1}`,
+                    avatar: '🪑',
+                    style: 'Empty Seat',
+                    isHuman: false,
+                    ownerId: null,
+                    chips: 0,
+                    hand: [],
+                    currentBet: 0,
+                    totalHandBet: 0,
+                    folded: true,
+                    allIn: false,
+                    busted: true,
+                    actedInRound: false,
+                    lastActionText: '',
+                    evaluatedText: '',
+                    aggression: 0.5,
+                    tightness: 0.5,
+                    bluffFreq: 0.1
+                };
+            }
+
+            createHumanSeat(idx, name, avatar, chips, ownerId = null, style = 'Human Challenger') {
+                return {
+                    id: idx,
+                    isEmpty: false,
+                    name,
+                    avatar,
+                    style,
+                    isHuman: true,
+                    ownerId: ownerId || this.userId,
+                    chips,
+                    hand: [],
+                    currentBet: 0,
+                    totalHandBet: 0,
+                    folded: false,
+                    allIn: false,
+                    busted: false,
+                    actedInRound: false,
+                    lastActionText: '',
+                    evaluatedText: '',
+                    aggression: 0.5,
+                    tightness: 0.5,
+                    bluffFreq: 0.1
+                };
+            }
+
+            createBotSeat(idx, profileIdx, chips = 2000) {
+                const profile = BOT_PROFILES[profileIdx % BOT_PROFILES.length];
+                return {
+                    id: idx,
+                    isEmpty: false,
+                    name: profile.name,
+                    avatar: profile.avatar,
+                    style: profile.style,
+                    isHuman: false,
+                    ownerId: 'BOT',
+                    chips,
+                    hand: [],
+                    currentBet: 0,
+                    totalHandBet: 0,
+                    folded: false,
+                    allIn: false,
+                    busted: false,
+                    actedInRound: false,
+                    lastActionText: '',
+                    evaluatedText: '',
+                    aggression: profile.aggression,
+                    tightness: profile.tightness,
+                    bluffFreq: profile.bluffFreq
+                };
+            }
+
+            initClassicSoloPlayers() {
+                this.mode = 'SOLO';
+                this.players = [
+                    this.createHumanSeat(0, 'You', '😎', 2000, this.userId, 'Human Challenger'),
+                    this.createBotSeat(1, 0, 2000),
+                    this.createBotSeat(2, 1, 2000),
+                    this.createBotSeat(3, 2, 2000),
+                    this.createBotSeat(4, 3, 2000),
+                    this.createBotSeat(5, 4, 2000)
+                ];
+                this.updateModeHeaderUI();
+            }
+
+            startCustomLocalTable() {
+                if (this.roomUnsubscribe) {
+                    this.roomUnsubscribe();
+                    this.roomUnsubscribe = null;
+                    this.roomCode = null;
+                }
+                if (this.aiTimer) clearTimeout(this.aiTimer);
+                if (this.autoDealTimer) clearTimeout(this.autoDealTimer);
+
+                const humanCount = Number(document.getElementById('local-human-count').value) || 2;
+                const botCount = Number(document.getElementById('local-bot-count').value) || 3;
+                const playerName = (document.getElementById('mp-player-name').value || 'Player 1').trim();
+                const playerAvatar = document.getElementById('mp-player-avatar').value || '😎';
+                const humanAvatars = [playerAvatar, '🤠', '🦁', '🦈', '💎', '👑'];
+
+                this.mode = humanCount > 1 ? 'PASS_AND_PLAY' : 'SOLO';
+                this.passShieldActive = false;
+                this.handNumber = 0;
+                this.smallBlind = 10;
+                this.bigBlind = 20;
+                this.phase = 'IDLE';
+                this.communityCards = [];
+                this.totalPot = 0;
+                this.players = [];
+
+                let seatCursor = 0;
+                for (let h = 0; h < humanCount && seatCursor < 6; h++) {
+                    const name = h === 0 ? playerName : `Friend ${h + 1}`;
+                    this.players.push(
+                        this.createHumanSeat(seatCursor, name, humanAvatars[h % humanAvatars.length], 2000, `LOCAL_P${h + 1}`, 'Pass & Play Human')
+                    );
+                    seatCursor++;
+                }
+
+                for (let b = 0; b < botCount && seatCursor < 6; b++) {
+                    this.players.push(this.createBotSeat(seatCursor, b, 2000));
+                    seatCursor++;
+                }
+
+                while (seatCursor < 6) {
+                    this.players.push(this.createEmptySeat(seatCursor));
+                    seatCursor++;
+                }
+
+                this.logsHistory = [];
+                document.getElementById('ui-action-log').innerHTML = '';
+                this.pushLog(
+                    `Table configured: <b>${humanCount} Human(s)</b> + <b>${Math.min(botCount, 6 - humanCount)} AI Bot(s)</b>.`,
+                    'street'
+                );
+
+                this.updateModeHeaderUI();
+                this.updateTopTelemetry();
+                this.renderAll();
+                this.renderLobbySeatsGrid();
+                ui.closeModal('modal-multiplayer');
+            }
+
+            /**
+             * ========================================================================
+             * REAL-TIME ONLINE MULTIPLAYER (FIREBASE FIRESTORE)
+             * ========================================================================
+             */
+            async createOnlineRoom() {
+                if (!this.db || !this.user) {
+                    ui.showBanner('CLOUD CONNECTING', 'Please wait a moment for authentication or use Pass & Play.', 3500);
+                    return;
+                }
+
+                const startStack = Number(document.getElementById('mp-start-stack').value) || 2000;
+                const botCount = Number(document.getElementById('mp-bot-count').value) || 3;
+                const hostName = (document.getElementById('mp-player-name').value || 'Host').trim();
+                const hostAvatar = document.getElementById('mp-player-avatar').value || '😎';
+
+                // Generate 6-character alphanumeric room code
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let code = '';
+                for (let i = 0; i < 6; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+
+                const initialPlayers = [];
+                initialPlayers.push(this.createHumanSeat(0, hostName, hostAvatar, startStack, this.userId, 'Room Host'));
+
+                for (let i = 1; i < 6; i++) {
+                    if (i <= botCount) {
+                        initialPlayers.push(this.createBotSeat(i, i - 1, startStack));
+                    } else {
+                        initialPlayers.push(this.createEmptySeat(i));
+                    }
+                }
+
+                const roomDocRef = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'poker_rooms', code);
+                const initialRoomData = {
+                    roomCode: code,
+                    hostId: this.userId,
+                    startStack,
+                    smallBlind: 10,
+                    bigBlind: 20,
+                    handNumber: 0,
+                    phase: 'IDLE',
+                    dealerIdx: 0,
+                    currentTurnIdx: -1,
+                    currentHighestBet: 0,
+                    minRaiseSize: 20,
+                    totalPot: 0,
+                    deckJson: JSON.stringify([]),
+                    communityCardsJson: JSON.stringify([]),
+                    playersJson: JSON.stringify(initialPlayers),
+                    logsJson: JSON.stringify([
+                        { msg: `Room <b>${code}</b> created by <b>${hostName}</b>! Share the code with your friends.`, type: 'street' }
+                    ]),
+                    winningCardIdsJson: JSON.stringify([]),
+                    bannerJson: JSON.stringify(null),
+                    pendingActionJson: JSON.stringify(null),
+                    updatedAt: Date.now()
+                };
+
+                try {
+                    await setDoc(roomDocRef, initialRoomData);
+                    await this.subscribeToOnlineRoom(code);
+                    ui.showBanner('ONLINE ROOM CREATED', `Share Room Code: ${code} with your friends!`, 5000);
+                } catch (err) {
+                    console.error('Error creating room:', err);
+                    ui.showBanner('ROOM ERROR', 'Could not create online room. Please try again.', 3500);
+                }
+            }
+
+            async joinOnlineRoomInput() {
+                const codeInput = document.getElementById('mp-join-code');
+                const code = (codeInput.value || '').trim().toUpperCase();
+                if (code.length < 4) {
+                    ui.showBanner('INVALID CODE', 'Please enter a valid 6-character Room Code.', 3000);
+                    return;
+                }
+                await this.joinOnlineRoom(code);
+            }
+
+            async joinOnlineRoom(code) {
+                if (!this.db || !this.user) {
+                    ui.showBanner('CLOUD CONNECTING', 'Wait a second for connection before joining.', 3000);
+                    return;
+                }
+
+                const roomDocRef = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'poker_rooms', code);
+                try {
+                    const snap = await getDoc(roomDocRef);
+                    if (!snap.exists()) {
+                        ui.showBanner('ROOM NOT FOUND', `No active poker table found with code "${code}".`, 3500);
+                        return;
+                    }
+
+                    const data = snap.data();
+                    const players = JSON.parse(data.playersJson || '[]');
+                    const logs = JSON.parse(data.logsJson || '[]');
+                    const myName = (document.getElementById('mp-player-name').value || 'Friend').trim();
+                    const myAvatar = document.getElementById('mp-player-avatar').value || '🤠';
+
+                    // Check if user is already seated
+                    let mySeat = players.findIndex(p => !p.isEmpty && p.ownerId === this.userId);
+
+                    if (mySeat === -1) {
+                        // Look for an empty seat first; if none, replace the last AI bot if hand is IDLE/SHOWDOWN
+                        let targetIdx = players.findIndex(p => p.isEmpty);
+                        if (targetIdx === -1 && (data.phase === 'IDLE' || data.phase === 'SHOWDOWN')) {
+                            for (let i = players.length - 1; i >= 0; i--) {
+                                if (!players[i].isHuman) {
+                                    targetIdx = i;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (targetIdx !== -1) {
+                            const seatedMidHand = data.phase !== 'IDLE' && data.phase !== 'SHOWDOWN';
+                            const newSeat = this.createHumanSeat(
+                                targetIdx,
+                                myName,
+                                myAvatar,
+                                data.startStack || 2000,
+                                this.userId,
+                                'Online Challenger'
+                            );
+                            if (seatedMidHand) {
+                                newSeat.folded = true;
+                                newSeat.lastActionText = 'Next Hand';
+                            }
+                            players[targetIdx] = newSeat;
+                            logs.push({
+                                msg: `👋 <b>${myName}</b> joined the table at Seat #${targetIdx + 1}!`,
+                                type: 'win'
+                            });
+                            await updateDoc(roomDocRef, {
+                                playersJson: JSON.stringify(players),
+                                logsJson: JSON.stringify(logs.slice(-35)),
+                                updatedAt: Date.now()
+                            });
+                        }
+                    }
+
+                    await this.subscribeToOnlineRoom(code);
+                    ui.closeModal('modal-multiplayer');
+                    ui.showBanner('JOINED ROOM ' + code, 'You are connected to the live multiplayer table!', 4000);
+                } catch (err) {
+                    console.error('Error joining room:', err);
+                    ui.showBanner('JOIN ERROR', 'Unable to join room. Check your code and try again.', 3500);
+                }
+            }
+
+            async subscribeToOnlineRoom(code) {
+                if (this.roomUnsubscribe) {
+                    this.roomUnsubscribe();
+                }
+                if (this.aiTimer) clearTimeout(this.aiTimer);
+                if (this.autoDealTimer) clearTimeout(this.autoDealTimer);
+
+                this.mode = 'ONLINE';
+                this.roomCode = code;
+                const roomDocRef = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'poker_rooms', code);
+
+                this.roomUnsubscribe = onSnapshot(
+                    roomDocRef,
+                    (snapshot) => {
+                        if (!snapshot.exists()) return;
+                        this.handleOnlineRoomSnapshot(snapshot.data());
+                    },
+                    (err) => {
+                        console.error('Room snapshot error:', err);
+                    }
+                );
+                this.updateModeHeaderUI();
+            }
+
+            handleOnlineRoomSnapshot(data) {
+                this.roomHostId = data.hostId;
+                this.smallBlind = data.smallBlind || 10;
+                this.bigBlind = data.bigBlind || 20;
+                this.handNumber = data.handNumber || 0;
+                this.phase = data.phase || 'IDLE';
+                this.dealerIdx = data.dealerIdx || 0;
+                this.currentTurnIdx = typeof data.currentTurnIdx === 'number' ? data.currentTurnIdx : -1;
+                this.currentHighestBet = data.currentHighestBet || 0;
+                this.minRaiseSize = data.minRaiseSize || this.bigBlind;
+                this.totalPot = data.totalPot || 0;
+
+                this.deck.cards = JSON.parse(data.deckJson || '[]');
+                this.communityCards = JSON.parse(data.communityCardsJson || '[]');
+                this.players = JSON.parse(data.playersJson || '[]');
+                this.logsHistory = JSON.parse(data.logsJson || '[]');
+                this.winningCardIds = JSON.parse(data.winningCardIdsJson || '[]');
+
+                const banner = JSON.parse(data.bannerJson || 'null');
+                if (banner && banner.timestamp !== this. bannerState?.timestamp) {
+                    this.bannerState = banner;
+                    ui.showBanner(banner.title, banner.sub, 4500);
+                } else if (!banner) {
+                    ui.hideBanner();
+                }
+
+                ui.renderLogArray(this.logsHistory);
+                ui.updateDealerButton(this.dealerIdx);
+                this.updateModeHeaderUI();
+                this.updateTopTelemetry();
+                this.updateUserHandStrengthUI();
+                this.renderAll(this.winningCardIds, this.phase === 'SHOWDOWN');
+                this.renderLobbySeatsGrid();
+
+                // Update Deal button state
+                const dealBtn = document.getElementById('btn-deal-next');
+                if (this.phase === 'IDLE' || this.phase === 'SHOWDOWN') {
+                    dealBtn.classList.remove('opacity-40', 'pointer-events-none');
+                } else {
+                    dealBtn.classList.add('opacity-40', 'pointer-events-none');
+                }
+
+                // Check if it is this client's turn to act
+                const mySeatIdx = this.getMySeatIndex();
+                if (
+                    this.phase !== 'IDLE' &&
+                    this.phase !== 'SHOWDOWN' &&
+                    this.currentTurnIdx !== -1 &&
+                    this.currentTurnIdx === mySeatIdx
+                ) {
+                    this.prepareHumanControls(mySeatIdx);
+                } else {
+                    this.setHumanControlsEnabled(false);
+                }
+
+                // If this client is the Room Host, process any guest pending actions or AI bot turns
+                if (this.isRoomHost()) {
+                    const pendingAction = JSON.parse(data.pendingActionJson || 'null');
+                    if (pendingAction && pendingAction.timestamp > this.lastProcessedActionTimestamp) {
+                        this.lastProcessedActionTimestamp = pendingAction.timestamp;
+                        if (pendingAction.type === 'START_HAND' && (this.phase === 'IDLE' || this.phase === 'SHOWDOWN')) {
+                            this.startNewHand();
+                            return;
+                        }
+                        if (pendingAction.seatIdx === this.currentTurnIdx) {
+                            this.applyPlayerAction(
+                                pendingAction.seatIdx,
+                                pendingAction.action,
+                                pendingAction.amount || 0
+                            );
+                            return;
+                        }
+                    }
+
+                    // If current turn belongs to an AI bot, host schedules AI decision
+                    if (
+                        this.phase !== 'IDLE' &&
+                        this.phase !== 'SHOWDOWN' &&
+                        this.currentTurnIdx !== -1
+                    ) {
+                        const activePlayer = this.players[this.currentTurnIdx];
+                        if (activePlayer && !activePlayer.isEmpty && !activePlayer.isHuman) {
+                            if (this.aiTimer) clearTimeout(this.aiTimer);
+                            this.aiTimer = setTimeout(() => {
+                                if (this.currentTurnIdx === activePlayer.id && this.phase !== 'SHOWDOWN') {
+                                    this.executeAITurn(activePlayer);
+                                }
+                            }, 750);
+                        }
+                    }
+                }
+            }
+
+            async pushRoomStateToCloud(bannerObj = undefined) {
+                if (this.mode !== 'ONLINE' || !this.db || !this.roomCode) return;
+                const roomDocRef = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'poker_rooms', this.roomCode);
+                const payload = {
+                    smallBlind: this.smallBlind,
+                    bigBlind: this.bigBlind,
+                    handNumber: this.handNumber,
+                    phase: this.phase,
+                    dealerIdx: this.dealerIdx,
+                    currentTurnIdx: this.currentTurnIdx,
+                    currentHighestBet: this.currentHighestBet,
+                    minRaiseSize: this.minRaiseSize,
+                    totalPot: this.totalPot,
+                    deckJson: JSON.stringify(this.deck.cards),
+                    communityCardsJson: JSON.stringify(this.communityCards),
+                    playersJson: JSON.stringify(this.players),
+                    logsJson: JSON.stringify(this.logsHistory.slice(-35)),
+                    winningCardIdsJson: JSON.stringify(this.winningCardIds || []),
+                    pendingActionJson: JSON.stringify(null),
+                    updatedAt: Date.now()
+                };
+                if (bannerObj !== undefined) {
+                    payload.bannerJson = JSON.stringify(bannerObj);
+                }
+                try {
+                    await updateDoc(roomDocRef, payload);
+                } catch (err) {
+                    console.error('Error syncing room state:', err);
+                }
+            }
+
+            isRoomHost() {
+                return this.mode === 'ONLINE' && this.roomHostId === this.userId;
+            }
+
+            getMySeatIndex() {
+                if (this.mode === 'ONLINE') {
+                    return this.players.findIndex(p => !p.isEmpty && p.ownerId === this.userId);
+                }
+                if (this.mode === 'PASS_AND_PLAY') {
+                    const active = this.players[this.currentTurnIdx];
+                    if (active && !active.isEmpty && active.isHuman) return this.currentTurnIdx;
+                    return this.players.findIndex(p => !p.isEmpty && p.isHuman);
+                }
+                return 0;
+            }
+
+            async claimOnlineSeat(seatIdx) {
+                if (this.mode !== 'ONLINE' || !this.db || !this.roomCode) return;
+                if (this.getMySeatIndex() !== -1) {
+                    ui.showBanner('ALREADY SEATED', 'You already have a seat at this table.', 2500);
+                    return;
+                }
+                const target = this.players[seatIdx];
+                if (!target || !target.isEmpty) return;
+
+                const myName = (document.getElementById('mp-player-name').value || 'Friend').trim();
+                const myAvatar = document.getElementById('mp-player-avatar').value || '🤠';
+                const newSeat = this.createHumanSeat(seatIdx, myName, myAvatar, 2000, this.userId, 'Online Challenger');
+                if (this.phase !== 'IDLE' && this.phase !== 'SHOWDOWN') {
+                    newSeat.folded = true;
+                    newSeat.lastActionText = 'Next Hand';
+                }
+                this.players[seatIdx] = newSeat;
+                this.pushLog(`👋 <b>${myName}</b> sat down at Seat #${seatIdx + 1}.`, 'win');
+                await this.pushRoomStateToCloud();
+            }
+
+            async toggleSeatBotOrOpen(seatIdx) {
+                if (this.phase !== 'IDLE' && this.phase !== 'SHOWDOWN') {
+                    ui.showBanner('HAND IN PROGRESS', 'Wait until the current hand finishes to modify seats.', 3000);
+                    return;
+                }
+                if (this.mode === 'ONLINE' && !this.isRoomHost()) {
+                    ui.showBanner('HOST ONLY', 'Only the Room Host can add or remove AI Bots.', 3000);
+                    return;
+                }
+
+                const current = this.players[seatIdx];
+                if (current.isEmpty) {
+                    this.players[seatIdx] = this.createBotSeat(seatIdx, seatIdx, 2000);
+                    this.pushLog(`🤖 Added AI Bot <b>${this.players[seatIdx].name}</b> to Seat #${seatIdx + 1}.`, 'normal');
+                } else {
+                    this.players[seatIdx] = this.createEmptySeat(seatIdx);
+                    this.pushLog(`🪑 Seat #${seatIdx + 1} is now open for friends to join.`, 'normal');
+                }
+
+                this.renderAll();
+                this.renderLobbySeatsGrid();
+                if (this.mode === 'ONLINE') {
+                    await this.pushRoomStateToCloud();
+                }
+            }
+
+            leaveOnlineRoom() {
+                if (this.roomUnsubscribe) {
+                    this.roomUnsubscribe();
+                    this.roomUnsubscribe = null;
+                }
+                this.roomCode = null;
+                this.roomHostId = null;
+                this.resetFullTable();
+                ui.closeModal('modal-multiplayer');
+                ui.showBanner('LEFT ONLINE ROOM', 'Switched back to local Solo vs AI Bots table.', 3000);
+            }
+
+            copyRoomCode() {
+                if (!this.roomCode) return;
+                const tempInput = document.createElement('input');
+                tempInput.value = this.roomCode;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+
+                const btnText = document.getElementById('ui-copy-btn-text');
+                btnText.textContent = 'Copied!';
+                setTimeout(() => {
+                    btnText.textContent = 'Copy';
+                }, 2000);
+            }
+
+            updateModeHeaderUI() {
+                const modePill = document.getElementById('ui-mode-pill');
+                const subHeader = document.getElementById('ui-sub-header');
+                const roomBadge = document.getElementById('ui-room-badge');
+                const roomControls = document.getElementById('mp-room-controls');
+
+                if (this.mode === 'ONLINE' && this.roomCode) {
+                    modePill.textContent = this.isRoomHost() ? 'Online Host' : 'Online Guest';
+                    modePill.className = 'px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/40';
+                    subHeader.textContent = `Live Room #${this.roomCode} • Friends + AI Bots`;
+                    roomBadge.classList.remove('hidden');
+                    roomBadge.classList.add('flex');
+                    document.getElementById('ui-room-code-text').textContent = this.roomCode;
+                    roomControls.classList.remove('hidden');
+                    roomControls.classList.add('flex');
+                } else if (this.mode === 'PASS_AND_PLAY') {
+                    modePill.textContent = 'Pass & Play';
+                    modePill.className = 'px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
+                    subHeader.textContent = 'Multi-Human Pass & Play + AI Bots';
+                    roomBadge.classList.add('hidden');
+                    roomBadge.classList.remove('flex');
+                    roomControls.classList.add('hidden');
+                } else {
+                    modePill.textContent = 'Solo vs Bots';
+                    modePill.className = 'px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30';
+                    subHeader.textContent = 'No-Limit Hold\'em • 6-Max Ring Game';
+                    roomBadge.classList.add('hidden');
+                    roomBadge.classList.remove('flex');
+                    roomControls.classList.add('hidden');
+                }
+            }
+
+            renderLobbySeatsGrid() {
+                const grid = document.getElementById('mp-seats-grid');
+                if (!grid) return;
+                grid.innerHTML = '';
+
+                this.players.forEach((p, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2';
+
+                    const badge = p.isEmpty
+                        ? `<span class="text-[10px] text-slate-500">Empty (Friend can join)</span>`
+                        : `<span class="text-[10px] ${p.isHuman ? 'text-emerald-400' : 'text-amber-400'} font-semibold">${p.isHuman ? 'Human' : 'AI Bot'} • ${ui.formatCurrency(p.chips)}</span>`;
+
+                    let actionBtn = '';
+                    const canManage = this.mode !== 'ONLINE' || this.isRoomHost();
+                    if (canManage && !(idx === 0 && p.isHuman)) {
+                        if (p.isEmpty) {
+                            actionBtn = `<button onclick="game.toggleSeatBotOrOpen(${idx})" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-[10px] font-bold transition">+ Add Bot</button>`;
+                        } else if (!p.isHuman) {
+                            actionBtn = `<button onclick="game.toggleSeatBotOrOpen(${idx})" class="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/30 text-[10px] font-bold transition">Open Seat</button>`;
+                        }
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex items-center gap-2 truncate">
+                            <span class="text-base">${p.avatar}</span>
+                            <div class="truncate">
+                                <div class="text-xs font-bold text-white truncate">Seat #${idx + 1}: ${p.name}</div>
+                                ${badge}
+                            </div>
+                        </div>
+                        ${actionBtn}
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            pushLog(msg, type = 'normal') {
+                this.logsHistory.push({ msg, type });
+                if (this.logsHistory.length > 40) {
+                    this.logsHistory.shift();
+                }
+                ui.addLog(msg, type);
+            }
+
+            /**
+             * ========================================================================
+             * CORE POKER TABLE FLOW & DEALING
+             * ========================================================================
+             */
+            resetFullTable() {
+                if (this.aiTimer) clearTimeout(this.aiTimer);
+                if (this.autoDealTimer) clearTimeout(this.autoDealTimer);
+                this.handNumber = 0;
+                this.smallBlind = 10;
+                this.bigBlind = 20;
+                this.phase = 'IDLE';
+                this.communityCards = [];
+                this.totalPot = 0;
+                this.winningCardIds = [];
+                this.passShieldActive = false;
+                document.getElementById('pass-play-shield').classList.add('hidden');
+                this.initClassicSoloPlayers();
+                ui.hideBanner();
+                this.logsHistory = [];
+                document.getElementById('ui-action-log').innerHTML = '';
+                this.pushLog('Table reset! All 6 seats start fresh with <b>$2,000</b>.', 'street');
+                this.updateTopTelemetry();
+                this.renderAll();
+                this.setHumanControlsEnabled(false);
+                document.getElementById('btn-deal-next').classList.remove('opacity-40', 'pointer-events-none');
+            }
+
+            async rebuyHuman() {
+                const seatIdx = this.getMySeatIndex();
+                if (seatIdx === -1) return;
+                const human = this.players[seatIdx];
+                if (this.phase !== 'IDLE' && this.phase !== 'SHOWDOWN' && !human.folded && !human.busted) {
+                    ui.showBanner('TOP-UP QUEUED', 'Finish the current hand first or fold to top-up.', 2500);
+                    return;
+                }
+                human.chips = Math.max(human.chips, 2000);
+                human.busted = false;
+                sound.playChip();
+                this.pushLog(`<b>${human.name}</b> topped up stack to <b>$2,000</b>.`, 'win');
+                this.renderAll();
+                if (this.mode === 'ONLINE') {
+                    await this.pushRoomStateToCloud();
+                }
+            }
+
+            toggleAutoDeal(checked) {
+                this.autoDeal = checked;
+                if (checked && (this.phase === 'IDLE' || this.phase === 'SHOWDOWN')) {
+                    this.requestStartNewHand();
+                }
+            }
+
+            async requestStartNewHand() {
+                if (this.mode === 'ONLINE') {
+                    if (this.isRoomHost()) {
+                        this.startNewHand();
+                    } else if (this.db && this.roomCode) {
+                        const roomDocRef = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'poker_rooms', this.roomCode);
+                        await updateDoc(roomDocRef, {
+                            pendingActionJson: JSON.stringify({
+                                type: 'START_HAND',
+                                seatIdx: this.getMySeatIndex(),
+                                timestamp: Date.now()
+                            })
+                        });
+                    }
+                } else {
+                    this.startNewHand();
+                }
+            }
+
+            getNextActiveSeat(fromIdx) {
+                for (let i = 1; i <= 6; i++) {
+                    const candidate = (fromIdx + i) % 6;
+                    const p = this.players[candidate];
+                    if (!p.isEmpty && !p.busted) return candidate;
+                }
+                return fromIdx;
+            }
+
+            getNextActionableSeat(fromIdx) {
+                for (let i = 1; i <= 6; i++) {
+                    const candidate = (fromIdx + i) % 6;
+                    const p = this.players[candidate];
+                    if (!p.isEmpty && !p.busted && !p.folded && !p.allIn) return candidate;
+                }
+                return -1;
+            }
+
+            startNewHand() {
+                if (this.aiTimer) clearTimeout(this.aiTimer);
+                if (this.autoDealTimer) clearTimeout(this.autoDealTimer);
+
+                // Ensure occupied seats have chips
+                this.players.forEach(p => {
+                    if (!p.isEmpty && p.isHuman && p.chips <= 0) {
+                        p.chips = 2000;
+                        p.busted = false;
+                        this.pushLog(`Complimentary reload: <b>${p.name}</b> restored to <b>$2,000</b>.`, 'win');
+                    }
+                });
+
+                const occupiedNonBusted = this.players.filter(p => !p.isEmpty && p.chips > 0);
+                if (occupiedNonBusted.length < 2) {
+                    this.players.forEach(p => {
+                        if (!p.isEmpty && p.chips <= 0) {
+                            p.chips = 2000;
+                            p.busted = false;
+                            this.pushLog(`${p.name} bought back in with <b>$2,000</b>.`, 'normal');
+                        }
+                    });
+                }
+
+                const readyPlayers = this.players.filter(p => !p.isEmpty && p.chips > 0);
+                if (readyPlayers.length < 2) {
+                    ui.showBanner('NEED MORE PLAYERS', 'Add at least 1 AI Bot or wait for a friend to sit down!', 3500);
+                    return;
+                }
+
+                this.handNumber++;
+                if (this.handNumber > 1 && this.handNumber % 6 === 0) {
+                    this.smallBlind = Math.min(200, Math.floor(this.smallBlind * 1.5));
+                    this.bigBlind = this.smallBlind * 2;
+                    this.pushLog(`Blinds escalated to <b>$${this.smallBlind} / $${this.bigBlind}</b>!`, 'street');
+                }
+
+                this.deck.reset();
+                this.communityCards = [];
+                this.totalPot = 0;
+                this.currentHighestBet = 0;
+                this.minRaiseSize = this.bigBlind;
+                this.phase = 'PREFLOP';
+                this.winningCardIds = [];
+                this.lastRevealedSeat = -1;
+                ui.hideBanner();
+
+                this.players.forEach(p => {
+                    if (p.isEmpty) {
+                        p.busted = true;
+                        p.folded = true;
+                        p.hand = [];
+                        p.currentBet = 0;
+                        p.totalHandBet = 0;
+                        return;
+                    }
+                    p.busted = p.chips <= 0;
+                    p.hand = [];
+                    p.currentBet = 0;
+                    p.totalHandBet = 0;
+                    p.folded = p.busted;
+                    p.allIn = false;
+                    p.actedInRound = false;
+                    p.lastActionText = '';
+                    p.evaluatedText = '';
+                    p.isWinner = false;
+                    p.revealCards = false;
+                    p.winningCardIds = [];
+                });
+
+                this.dealerIdx = this.getNextActiveSeat(this.dealerIdx);
+                ui.updateDealerButton(this.dealerIdx);
+
+                const activePlayers = this.players.filter(p => !p.isEmpty && !p.busted);
+                let sbIdx, bbIdx;
+
+                if (activePlayers.length === 2) {
+                    sbIdx = this.dealerIdx;
+                    bbIdx = this.getNextActiveSeat(this.dealerIdx);
+                } else {
+                    sbIdx = this.getNextActiveSeat(this.dealerIdx);
+                    bbIdx = this.getNextActiveSeat(sbIdx);
+                }
+
+                this.pushLog(`─── <b>Hand #${this.handNumber}</b> (Dealer: ${this.players[this.dealerIdx].name}) ───`, 'street');
+
+                this.players.forEach(p => {
+                    if (!p.isEmpty && !p.busted) {
+                        p.hand = [this.deck.draw(), this.deck.draw()];
+                    }
+                });
+                sound.playCard();
+
+                this.postBet(sbIdx, this.smallBlind, 'SB');
+                this.postBet(bbIdx, this.bigBlind, 'BB');
+                this.currentHighestBet = this.bigBlind;
+                this.minRaiseSize = this.bigBlind;
+
+                this.currentTurnIdx = this.getNextActionableSeat(bbIdx);
+
+                document.getElementById('btn-deal-next').classList.add('opacity-40', 'pointer-events-none');
+                document.getElementById('btn-deal-text').textContent = 'Next Hand';
+
+                this.updateTopTelemetry();
+                this.updateUserHandStrengthUI();
+                this.renderAll();
+
+                if (this.mode === 'ONLINE') {
+                    this.pushRoomStateToCloud(null);
+                }
+                this.processTurn();
+            }
+
+            postBet(seatIdx, amount, badgeText = '') {
+                const p = this.players[seatIdx];
+                const actual = Math.min(p.chips, amount);
+                p.chips -= actual;
+                p.currentBet += actual;
+                p.totalHandBet += actual;
+                this.totalPot += actual;
+
+                if (p.chips === 0) {
+                    p.allIn = true;
+                    p.lastActionText = 'ALL-IN';
+                } else if (badgeText) {
+                    p.lastActionText = badgeText;
+                }
+            }
+
+            calculateSidePots() {
+                const contributors = this.players.filter(p => !p.isEmpty && p.totalHandBet > 0);
+                if (contributors.length === 0) return [];
+
+                const levels = [...new Set(contributors.map(p => p.totalHandBet))].sort((a, b) => a - b);
+                const pots = [];
+                let previousLevel = 0;
+
+                for (const level of levels) {
+                    const slice = level - previousLevel;
+                    if (slice <= 0) continue;
+
+                    let potAmount = 0;
+                    const eligiblePlayers = [];
+
+                    for (const p of contributors) {
+                        const contribution = Math.min(slice, Math.max(0, p.totalHandBet - previousLevel));
+                        potAmount += contribution;
+                        if (!p.folded && p.totalHandBet >= level) {
+                            eligiblePlayers.push(p.id);
+                        }
+                    }
+
+                    if (potAmount > 0) {
+                        if (
+                            pots.length > 0 &&
+                            pots[pots.length - 1].eligible.length === eligiblePlayers.length &&
+                            pots[pots.length - 1].eligible.every((val, i) => val === eligiblePlayers[i])
+                        ) {
+                            pots[pots.length - 1].amount += potAmount;
+                        } else {
+                            pots.push({ amount: potAmount, eligible: eligiblePlayers });
+                        }
+                    }
+                    previousLevel = level;
+                }
+
+                return pots;
+            }
+
+            processTurn() {
+                const contenders = this.players.filter(p => !p.isEmpty && !p.busted && !p.folded);
+                if (contenders.length === 1) {
+                    this.awardUncontestedPot(contenders[0]);
+                    return;
+                }
+
+                if (this.isBettingRoundComplete()) {
+                    this.advanceStreet();
+                    return;
+                }
+
+                if (this.currentTurnIdx === -1) {
+                    this.advanceStreet();
+                    return;
+                }
+
+                const activePlayer = this.players[this.currentTurnIdx];
+
+                // Handle Pass & Play Privacy Shield when switching between local human seats
+                if (this.mode === 'PASS_AND_PLAY' && activePlayer.isHuman) {
+                    const humanContenders = this.players.filter(p => !p.isEmpty && p.isHuman && !p.busted && !p.folded);
+                    if (humanContenders.length > 1 && this.lastRevealedSeat !== this.currentTurnIdx) {
+                        this.passShieldActive = true;
+                        document.getElementById('shield-player-name').textContent = `Pass Device to ${activePlayer.name}`;
+                        document.getElementById('shield-player-inline').textContent = activePlayer.name;
+                        const shield = document.getElementById('pass-play-shield');
+                        shield.classList.remove('hidden');
+                        shield.classList.add('flex');
+                        this.setHumanControlsEnabled(false);
+                        this.renderAll();
+                        return;
+                    }
+                }
+
+                this.renderAll();
+                this.updateUserHandStrengthUI();
+
+                if (this.mode === 'ONLINE') {
+                    this.pushRoomStateToCloud();
+                    return;
+                }
+
+                if (activePlayer.isHuman) {
+                    this.prepareHumanControls(this.currentTurnIdx);
+                } else {
+                    this.setHumanControlsEnabled(false);
+                    this.aiTimer = setTimeout(() => {
+                        this.executeAITurn(activePlayer);
+                    }, 650);
+                }
+            }
+
+            revealPassAndPlayTurn() {
+                this.passShieldActive = false;
+                this.lastRevealedSeat = this.currentTurnIdx;
+                const shield = document.getElementById('pass-play-shield');
+                shield.classList.add('hidden');
+                shield.classList.remove('flex');
+                this.renderAll();
+                this.updateUserHandStrengthUI();
+                this.prepareHumanControls(this.currentTurnIdx);
+            }
+
+            isBettingRoundComplete() {
+                const activePlayers = this.players.filter(p => !p.isEmpty && !p.busted && !p.folded);
+                const actionable = activePlayers.filter(p => !p.allIn);
+
+                if (actionable.length === 0) return true;
+
+                for (const p of actionable) {
+                    if (!p.actedInRound) return false;
+                    if (p.currentBet < this.currentHighestBet) return false;
+                }
+                return true;
+            }
+
+            prepareHumanControls(seatIdx = 0) {
+                const human = this.players[seatIdx];
+                if (!human || human.isEmpty) return;
+
+                const toCall = Math.max(0, this.currentHighestBet - human.currentBet);
+                const actualCall = Math.min(human.chips, toCall);
+
+                document.getElementById('ui-to-call').textContent = ui.formatCurrency(actualCall);
+                const totalPotIfCall = this.totalPot + actualCall;
+                const potOdds = actualCall > 0 ? Math.round((actualCall / totalPotIfCall) * 100) : 0;
+                document.getElementById('ui-pot-odds').textContent = `${potOdds}%`;
+
+                const btnCall = document.getElementById('btn-check-call');
+                if (toCall === 0) {
+                    btnCall.textContent = 'Check';
+                } else if (toCall >= human.chips) {
+                    btnCall.textContent = `Call All-In (${ui.formatCurrency(human.chips)})`;
+                } else {
+                    btnCall.textContent = `Call ${ui.formatCurrency(toCall)}`;
+                }
+
+                const minRaiseTotal = Math.min(
+                    human.currentBet + human.chips,
+                    Math.max(this.currentHighestBet + this.minRaiseSize, this.bigBlind * 2)
+                );
+                const maxRaiseTotal = human.currentBet + human.chips;
+
+                const slider = document.getElementById('raise-slider');
+                const input = document.getElementById('raise-input');
+                const btnRaise = document.getElementById('btn-raise');
+
+                if (human.chips <= toCall) {
+                    btnRaise.disabled = true;
+                    btnRaise.classList.add('opacity-40', 'pointer-events-none');
+                } else {
+                    btnRaise.disabled = false;
+                    btnRaise.classList.remove('opacity-40', 'pointer-events-none');
+                    slider.min = minRaiseTotal;
+                    slider.max = maxRaiseTotal;
+                    slider.step = Math.max(5, this.smallBlind);
+                    slider.value = minRaiseTotal;
+                    input.min = minRaiseTotal;
+                    input.max = maxRaiseTotal;
+                    input.value = minRaiseTotal;
+                    btnRaise.textContent = this.currentHighestBet === 0
+                        ? `Bet ${ui.formatCurrency(minRaiseTotal)}`
+                        : `Raise to ${ui.formatCurrency(minRaiseTotal)}`;
+                }
+
+                this.setHumanControlsEnabled(true);
+            }
+
+            syncRaiseSlider(val) {
+                const amount = Number(val);
+                document.getElementById('raise-input').value = amount;
+                const btnRaise = document.getElementById('btn-raise');
+                btnRaise.textContent = this.currentHighestBet === 0
+                    ? `Bet ${ui.formatCurrency(amount)}`
+                    : `Raise to ${ui.formatCurrency(amount)}`;
+            }
+
+            syncRaiseInput(val) {
+                const slider = document.getElementById('raise-slider');
+                const min = Number(slider.min);
+                const max = Number(slider.max);
+                const clamped = Math.max(min, Math.min(max, Number(val) || min));
+                slider.value = clamped;
+                const btnRaise = document.getElementById('btn-raise');
+                btnRaise.textContent = this.currentHighestBet === 0
+                    ? `Bet ${ui.formatCurrency(clamped)}`
+                    : `Raise to ${ui.formatCurrency(clamped)}`;
+            }
+
+            setQuickRaise(preset) {
+                const slider = document.getElementById('raise-slider');
+                const min = Number(slider.min);
+                const max = Number(slider.max);
+                let target = min;
+
+                if (preset === 'min') {
+                    target = min;
+                } else if (preset === 'half') {
+                    target = this.currentHighestBet + Math.floor(this.totalPot * 0.5);
+                } else if (preset === 'pot') {
+                    target = this.currentHighestBet + this.totalPot;
+                } else if (preset === 'max') {
+                    target = max;
+                }
+
+                target = Math.max(min, Math.min(max, Math.round(target / 5) * 5));
+                slider.value = target;
+                this.syncRaiseSlider(target);
+            }
+
+            setHumanControlsEnabled(enabled) {
+                const controls = document.getElementById('betting-controls');
+                if (enabled) {
+                    controls.classList.remove('opacity-40', 'pointer-events-none');
+                } else {
+                    controls.classList.add('opacity-40', 'pointer-events-none');
+                }
+            }
+
+            async handleHumanAction(actionType) {
+                const activeSeat = this.currentTurnIdx;
+                if (activeSeat === -1) return;
+
+                const human = this.players[activeSeat];
+                if (!human || !human.isHuman) return;
+
+                // Verify turn ownership in Online mode
+                if (this.mode === 'ONLINE' && human.ownerId !== this.userId) return;
+
+                this.setHumanControlsEnabled(false);
+                const toCall = Math.max(0, this.currentHighestBet - human.currentBet);
+                let chosenAction = actionType;
+                let amount = 0;
+
+                if (actionType === 'fold') {
+                    chosenAction = 'fold';
+                } else if (actionType === 'call') {
+                    chosenAction = 'call';
+                    amount = toCall;
+                } else if (actionType === 'raise') {
+                    chosenAction = 'raise';
+                    const targetTotalBet = Number(document.getElementById('raise-input').value);
+                    amount = targetTotalBet - human.currentBet;
+                } else if (actionType === 'allin') {
+                    chosenAction = 'raise';
+                    amount = human.chips;
+                }
+
+                // If Online Guest, send pendingAction to Room Host via Firestore
+                if (this.mode === 'ONLINE' && !this.isRoomHost()) {
+                    const roomDocRef = doc(this.db, 'artifacts', this.appId, 'public', 'data', 'poker_rooms', this.roomCode);
+                    await updateDoc(roomDocRef, {
+                        pendingActionJson: JSON.stringify({
+                            seatIdx: activeSeat,
+                            action: chosenAction,
+                            amount,
+                            timestamp: Date.now()
+                        })
+                    });
+                    return;
+                }
+
+                this.applyPlayerAction(activeSeat, chosenAction, amount);
+            }
+
+            applyPlayerAction(seatIdx, action, additionalChips = 0) {
+                const p = this.players[seatIdx];
+                p.actedInRound = true;
+
+                if (action === 'fold') {
+                    p.folded = true;
+                    p.lastActionText = 'Fold';
+                    sound.playFold();
+                    this.pushLog(`<b>${p.name}</b> folds.`, 'fold');
+                } else if (action === 'call') {
+                    const toCall = Math.max(0, this.currentHighestBet - p.currentBet);
+                    if (toCall === 0) {
+                        p.lastActionText = 'Check';
+                        sound.playCheck();
+                        this.pushLog(`<b>${p.name}</b> checks.`);
+                    } else {
+                        const actual = Math.min(p.chips, toCall);
+                        this.postBet(seatIdx, actual, actual === p.chips ? 'ALL-IN' : 'Call');
+                        sound.playChip();
+                        this.pushLog(`<b>${p.name}</b> calls <b>${ui.formatCurrency(actual)}</b>.`);
+                    }
+                } else if (action === 'raise') {
+                    const actual = Math.min(p.chips, additionalChips);
+                    const prevHighest = this.currentHighestBet;
+                    this.postBet(seatIdx, actual);
+
+                    if (p.currentBet > prevHighest) {
+                        const raiseDiff = p.currentBet - prevHighest;
+                        if (raiseDiff > this.minRaiseSize) {
+                            this.minRaiseSize = raiseDiff;
+                        }
+                        this.currentHighestBet = p.currentBet;
+
+                        this.players.forEach((other, idx) => {
+                            if (idx !== seatIdx && !other.isEmpty && !other.busted && !other.folded && !other.allIn) {
+                                other.actedInRound = false;
+                            }
+                        });
+
+                        p.lastActionText = p.allIn ? 'ALL-IN' : `Raise ${ui.formatCurrency(p.currentBet)}`;
+                        sound.playChip();
+                        this.pushLog(
+                            `<b>${p.name}</b> ${prevHighest === 0 ? 'bets' : 'raises to'} <b>${ui.formatCurrency(p.currentBet)}</b>${p.allIn ? ' (ALL-IN!)' : ''}.`,
+                            'raise'
+                        );
+                    } else {
+                        p.lastActionText = 'ALL-IN';
+                        sound.playChip();
+                        this.pushLog(`<b>${p.name}</b> calls All-In for <b>${ui.formatCurrency(actual)}</b>.`, 'raise');
+                    }
+                }
+
+                this.currentTurnIdx = this.getNextActionableSeat(seatIdx);
+                this.updateTopTelemetry();
+                this.processTurn();
+            }
+
+            executeAITurn(ai) {
+                const toCall = Math.max(0, this.currentHighestBet - ai.currentBet);
+                const potOdds = toCall / (this.totalPot + toCall + 1);
+
+                let strength = 0.35;
+                if (this.communityCards.length === 0) {
+                    strength = HandEvaluator.evaluatePreFlopStrength(ai.hand);
+                } else {
+                    const evalResult = HandEvaluator.evaluateBestHand([...ai.hand, ...this.communityCards]);
+                    const baseByCat = [0.22, 0.46, 0.66, 0.76, 0.84, 0.89, 0.94, 0.98, 0.99, 1.0];
+                    strength = baseByCat[evalResult.category] + (evalResult.tieBreakers[0] || 7) / 140;
+
+                    if (this.communityCards.length < 5 && evalResult.category <= 1) {
+                        const allCards = [...ai.hand, ...this.communityCards];
+                        const suitCounts = {};
+                        allCards.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
+                        if (Object.values(suitCounts).some(cnt => cnt === 4)) {
+                            strength += 0.14;
+                        }
+                    }
+                }
+
+                const isBluffing = Math.random() < ai.bluffFreq && this.currentHighestBet <= this.bigBlind * 3;
+                const effectiveStrength = isBluffing ? Math.max(strength, 0.74) : strength;
+
+                if (toCall === 0) {
+                    if (effectiveStrength > 0.62 && Math.random() < ai.aggression) {
+                        const betTarget = Math.max(
+                            this.bigBlind,
+                            Math.round((this.totalPot * (0.5 + Math.random() * 0.35)) / 10) * 10
+                        );
+                        this.applyPlayerAction(ai.id, 'raise', Math.min(ai.chips, betTarget));
+                    } else {
+                        this.applyPlayerAction(ai.id, 'call', 0);
+                    }
+                    return;
+                }
+
+                const thresholdToContinue = 0.25 + (ai.tightness * 0.28) + (potOdds * 0.55);
+
+                if (effectiveStrength < thresholdToContinue && toCall > this.bigBlind) {
+                    this.applyPlayerAction(ai.id, 'fold');
+                } else if (
+                    effectiveStrength > 0.72 &&
+                    Math.random() < ai.aggression &&
+                    ai.chips > toCall + this.minRaiseSize
+                ) {
+                    const raiseExtra = Math.max(
+                        this.minRaiseSize,
+                        Math.round((this.totalPot * 0.65) / 10) * 10
+                    );
+                    const totalAdditional = toCall + raiseExtra;
+                    this.applyPlayerAction(ai.id, 'raise', Math.min(ai.chips, totalAdditional));
+                } else {
+                    this.applyPlayerAction(ai.id, 'call', toCall);
+                }
+            }
+
+            advanceStreet() {
+                this.players.forEach(p => {
+                    p.currentBet = 0;
+                    p.actedInRound = false;
+                    if (!p.isEmpty && !p.folded && !p.allIn && !p.busted) {
+                        p.lastActionText = '';
+                    }
+                });
+                this.currentHighestBet = 0;
+                this.minRaiseSize = this.bigBlind;
+                this.lastRevealedSeat = -1;
+
+                if (this.phase === 'PREFLOP') {
+                    this.phase = 'FLOP';
+                    this.communityCards.push(this.deck.draw(), this.deck.draw(), this.deck.draw());
+                    sound.playCard();
+                    const cardsStr = this.communityCards.map(c => `${RANK_LABELS[c.rank]}${c.suit}`).join(' ');
+                    this.pushLog(`─── <b>FLOP</b>: [ ${cardsStr} ] ───`, 'street');
+                } else if (this.phase === 'FLOP') {
+                    this.phase = 'TURN';
+                    const card = this.deck.draw();
+                    this.communityCards.push(card);
+                    sound.playCard();
+                    this.pushLog(`─── <b>TURN</b>: [ ${RANK_LABELS[card.rank]}${card.suit} ] ───`, 'street');
+                } else if (this.phase === 'TURN') {
+                    this.phase = 'RIVER';
+                    const card = this.deck.draw();
+                    this.communityCards.push(card);
+                    sound.playCard();
+                    this.pushLog(`─── <b>RIVER</b>: [ ${RANK_LABELS[card.rank]}${card.suit} ] ───`, 'street');
+                } else if (this.phase === 'RIVER') {
+                    this.resolveShowdown();
+                    return;
+                }
+
+                this.updateTopTelemetry();
+                this.updateUserHandStrengthUI();
+
+                const actionableCount = this.players.filter(p => !p.isEmpty && !p.busted && !p.folded && !p.allIn).length;
+                if (actionableCount < 2) {
+                    this.players.forEach(p => {
+                        if (!p.isEmpty && !p.busted && !p.folded) p.revealCards = true;
+                    });
+                    this.currentTurnIdx = -1;
+                    this.renderAll();
+                    if (this.mode === 'ONLINE') {
+                        this.pushRoomStateToCloud();
+                    }
+                    this.aiTimer = setTimeout(() => {
+                        this.advanceStreet();
+                    }, 1100);
+                    return;
+                }
+
+                this.currentTurnIdx = this.getNextActionableSeat(this.dealerIdx);
+                this.renderAll();
+                this.processTurn();
+            }
+
+            awardUncontestedPot(winner) {
+                this.phase = 'SHOWDOWN';
+                this.currentTurnIdx = -1;
+                this.setHumanControlsEnabled(false);
+
+                winner.chips += this.totalPot;
+                winner.isWinner = true;
+                winner.lastActionText = 'WINNER';
+                sound.playWin();
+
+                const msg = `${winner.name} wins ${ui.formatCurrency(this.totalPot)} (uncontested)`;
+                const bannerObj = { title: 'POT AWARDED', sub: msg, timestamp: Date.now() };
+                this.bannerState = bannerObj;
+                ui.showBanner(bannerObj.title, bannerObj.sub, 4500);
+                this.pushLog(`🏆 <b>${winner.name}</b> collects <b>${ui.formatCurrency(this.totalPot)}</b> uncontested.`, 'win');
+
+                this.players.forEach(p => p.currentBet = 0);
+                this.updateTopTelemetry();
+                this.renderAll();
+                if (this.mode === 'ONLINE') {
+                    this.pushRoomStateToCloud(bannerObj);
+                }
+                this.finishHandCleanup();
+            }
+
+            resolveShowdown() {
+                this.phase = 'SHOWDOWN';
+                this.currentTurnIdx = -1;
+                this.setHumanControlsEnabled(false);
+
+                const contenders = this.players.filter(p => !p.isEmpty && !p.busted && !p.folded);
+                const evaluations = {};
+
+                contenders.forEach(p => {
+                    p.revealCards = true;
+                    const best = HandEvaluator.evaluateBestHand([...p.hand, ...this.communityCards]);
+                    evaluations[p.id] = best;
+                    p.evaluatedText = best.categoryName;
+                });
+
+                const pots = this.calculateSidePots();
+                const allWinningCardIds = new Set();
+                const payoutSummary = [];
+
+                pots.forEach((pot, potIdx) => {
+                    const eligibleContenders = pot.eligible
+                        .map(id => this.players[id])
+                        .filter(p => p && !p.isEmpty && !p.folded);
+
+                    if (eligibleContenders.length === 0) return;
+
+                    let highestScore = -1;
+                    let winners = [];
+
+                    eligibleContenders.forEach(p => {
+                        const score = evaluations[p.id].numericScore;
+                        if (score > highestScore) {
+                            highestScore = score;
+                            winners = [p];
+                        } else if (score === highestScore) {
+                            winners.push(p);
+                        }
+                    });
+
+                    const share = Math.floor(pot.amount / winners.length);
+                    const remainder = pot.amount % winners.length;
+
+                    winners.forEach((w, idx) => {
+                        const payout = share + (idx === 0 ? remainder : 0);
+                        w.chips += payout;
+                        w.isWinner = true;
+                        w.lastActionText = 'WINNER';
+                        const winCards = evaluations[w.id].best5.map(c => c.id);
+                        w.winningCardIds = winCards;
+                        winCards.forEach(id => allWinningCardIds.add(id));
+
+                        const potLabel = pots.length > 1 ? (potIdx === 0 ? 'Main Pot' : `Side Pot ${potIdx}`) : 'Pot';
+                        payoutSummary.push({
+                            name: w.name,
+                            amount: payout,
+                            desc: evaluations[w.id].description,
+                            potLabel
+                        });
+                    });
+                });
+
+                sound.playWin();
+
+                payoutSummary.forEach(item => {
+                    this.pushLog(
+                        `🏆 <b>${item.name}</b> wins <b>${ui.formatCurrency(item.amount)}</b> (${item.potLabel}) with <b>${item.desc}</b>!`,
+                        'win'
+                    );
+                });
+
+                let bannerObj = null;
+                if (payoutSummary.length > 0) {
+                    const primary = payoutSummary[0];
+                    const bannerSub = payoutSummary.length === 1
+                        ? `${primary.name} wins ${ui.formatCurrency(primary.amount)} with ${primary.desc}`
+                        : payoutSummary.map(s => `${s.name} (${ui.formatCurrency(s.amount)})`).join(' • ');
+                    bannerObj = { title: 'SHOWDOWN WINNER', sub: bannerSub, timestamp: Date.now() };
+                    this.bannerState = bannerObj;
+                    ui.showBanner(bannerObj.title, bannerObj.sub, 5500);
+                }
+
+                this.players.forEach(p => p.currentBet = 0);
+                this.winningCardIds = [...allWinningCardIds];
+                this.updateTopTelemetry();
+                this.renderAll(this.winningCardIds, true);
+                if (this.mode === 'ONLINE') {
+                    this.pushRoomStateToCloud(bannerObj);
+                }
+                this.finishHandCleanup();
+            }
+
+            finishHandCleanup() {
+                document.getElementById('btn-deal-next').classList.remove('opacity-40', 'pointer-events-none');
+                if (this.autoDeal && (this.mode !== 'ONLINE' || this.isRoomHost())) {
+                    this.autoDealTimer = setTimeout(() => {
+                        this.startNewHand();
+                    }, 3500);
+                }
+            }
+
+            updateUserHandStrengthUI() {
+                const seatIdx = this.getMySeatIndex();
+                const human = seatIdx !== -1 ? this.players[seatIdx] : null;
+                const rankEl = document.getElementById('ui-user-hand-rank');
+                const cardsEl = document.getElementById('ui-user-hand-cards');
+                const labelEl = document.getElementById('ui-hand-meter-label');
+
+                if (this.mode === 'PASS_AND_PLAY' && this.passShieldActive) {
+                    rankEl.textContent = 'Hidden';
+                    cardsEl.textContent = 'Reveal privacy shield to view hand...';
+                    return;
+                }
+
+                if (!human || human.isEmpty || !human.hand || human.hand.length < 2) {
+                    rankEl.textContent = '—';
+                    cardsEl.textContent = 'Waiting for deal...';
+                    return;
+                }
+
+                labelEl.textContent = `${human.name}'s Best Hand`;
+
+                if (this.communityCards.length === 0) {
+                    const c1 = human.hand[0];
+                    const c2 = human.hand[1];
+                    const isPair = c1.rank === c2.rank;
+                    rankEl.textContent = isPair
+                        ? `Pocket ${RANK_NAMES_PLURAL[c1.rank]}`
+                        : `${RANK_NAMES_SINGULAR[Math.max(c1.rank, c2.rank)]} High`;
+                    cardsEl.textContent = `${RANK_LABELS[c1.rank]}${c1.suit} ${RANK_LABELS[c2.rank]}${c2.suit} (Pre-Flop)`;
+                } else {
+                    const best = HandEvaluator.evaluateBestHand([...human.hand, ...this.communityCards]);
+                    if (best) {
+                        rankEl.textContent = best.categoryName;
+                        cardsEl.textContent = `${best.description} (${best.best5.map(c => RANK_LABELS[c.rank] + c.suit).join(' ')})`;
+                        human.evaluatedText = best.categoryName;
+                    }
+                }
+            }
+
+            updateTopTelemetry() {
+                document.getElementById('ui-hand-num').textContent = `#${this.handNumber || 1}`;
+                document.getElementById('ui-blinds').textContent = `$${this.smallBlind} / $${this.bigBlind}`;
+                document.getElementById('ui-phase-badge').textContent = this.phase;
+            }
+
+            renderAll(winningCardIds = [], highlightMode = false) {
+                const sidePots = this.calculateSidePots();
+                ui.updatePotDisplay(this.totalPot, sidePots);
+                ui.renderCommunityCards(this.communityCards, winningCardIds, highlightMode);
+
+                const viewerState = {
+                    mode: this.mode,
+                    myUserId: this.userId,
+                    mySeatIdx: this.getMySeatIndex(),
+                    shieldActive: this.passShieldActive
+                };
+                ui.renderSeats(this.players, this.currentTurnIdx, this.phase === 'SHOWDOWN', viewerState);
+            }
+        }
+
+        // Initialize the game and attach to window for inline UI handlers
+        window.onload = () => {
+            window.game = new TexasHoldemGame();
+        };
+    </script>
 </body>
 </html>
